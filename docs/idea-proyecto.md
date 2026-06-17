@@ -63,13 +63,16 @@ Mas adelante se puede agregar recuperacion por email.
 - Tabla personal_access_tokens creada.
 - Modelo User usa Laravel\Sanctum\HasApiTokens.
 - Ruta de prueba disponible: GET /api/health.
+- Middleware de roles implementado: role:admin.
+- Rutas admin protegidas con auth:sanctum y role:admin.
+- CRUD de choferes implementado para administradores.
+- Choferes tienen nombre, apellido, DNI, fecha de nacimiento, licencia, email y telefono.
 
 ## Proximos pasos
 
-1. Crear middleware o validaciones para diferenciar admin y chofer.
-2. Crear endpoints admin para usuarios chofer.
-3. Crear modelo, migracion y endpoints de envios.
-4. Crear endpoints del chofer para aceptar y actualizar estado de envios.
+1. Crear modelo, migracion y endpoints de envios.
+2. Crear endpoints del chofer para aceptar y actualizar estado de envios.
+3. Agregar pruebas de integracion cuando el entorno tenga driver de base de datos para testing.
 
 ## Endpoints pensados
 
@@ -83,6 +86,9 @@ Admin:
 
 - POST /api/admin/choferes
 - GET /api/admin/choferes
+- GET /api/admin/choferes/{id}
+- PUT/PATCH /api/admin/choferes/{id}
+- DELETE /api/admin/choferes/{id}
 - PATCH /api/admin/choferes/{id}/password
 - POST /api/admin/envios
 - GET /api/admin/envios
