@@ -4,39 +4,75 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'apellido', 'dni', 'fecha_nacimiento', 'licencia', 'email', 'telefono', 'password', 'role'])]
-#[Hidden(['password', 'remember_token'])]
+/** @use HasFactory<UserFactory> */
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $table = 'users';
+    public $incrementing = false;
 
-    public function envios(): HasMany
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'empresa_id',
+        'rol_id',
+        'nombre_completo',
+        'email',
+        'password',
+        'telefono',
+        'activo',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function empresa(): BelongsTo
     {
-        return $this->hasMany(Envio::class, 'chofer_id');
+        return $this->belongsTo(Empresa::class);
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function rol(): BelongsTo
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'fecha_nacimiento' => 'date:Y-m-d',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Rol::class);
+    }
+
+    public function entregas(): HasMany
+    {
+        return $this->hasMany(Entrega::class, 'chofer_id');
+    }
+
+    public function asignacionesVehiculo(): HasMany
+    {
+        return $this->hasMany(AsignacionVehiculo::class, 'usuario_id');
+    }
+
+    public function jornadasTrabajo(): HasMany
+    {
+        return $this->hasMany(JornadaTrabajo::class, 'usuario_id');
+    }
+
+    public function notificaciones(): HasMany
+    {
+        return $this->hasMany(Notificacion::class, 'usuario_id');
+    }
+
+    public function historialEstados(): HasMany
+    {
+        return $this->hasMany(HistorialEstadoEntrega::class, 'usuario_id');
+    }
+
+    public function zonasCobertura(): BelongsToMany
+    {
+        return $this->belongsToMany(ZonaCobertura::class, 'chofer_zonas', 'usuario_id', 'zona_id');
     }
 }
