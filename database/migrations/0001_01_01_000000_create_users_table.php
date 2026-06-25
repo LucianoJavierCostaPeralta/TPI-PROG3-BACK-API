@@ -12,13 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->uuid('id')->primary();
+            $table->uuid('empresa_id')->nullable();
+            $table->integer('rol_id');
+
+            $table->string('nombre_completo');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->rememberToken();
+            $table->string('telefono')->nullable();
+            $table->boolean('activo')->default(true);
+
             $table->timestamps();
+
+            // Declaración explícita de las claves foráneas
+            $table->foreign('empresa_id')->references('id')->on('empresas')->onDelete('cascade');
+            $table->foreign('rol_id')->references('id')->on('roles');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

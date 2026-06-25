@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('envios', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('chofer_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('direccion_origen');
-            $table->string('direccion_destino');
+        Schema::create('roles', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('nombre_rol');
             $table->text('descripcion')->nullable();
-            $table->string('state')->default('pending');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('envios');
+        Schema::dropIfExists('rols');
     }
 };

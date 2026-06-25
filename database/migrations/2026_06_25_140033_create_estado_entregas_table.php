@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('chofer')->after('password');
+        Schema::create('estados_entrega', function (Blueprint $table) {
+            $table->integer('id')->primary(); // INT porque es catálogo fijo
+            $table->string('nombre_estado'); // Ej: Pendiente, En camino, Entregado
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role');
-        });
+        Schema::dropIfExists('estado_entregas');
     }
 };
