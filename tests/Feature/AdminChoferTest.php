@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\ClienteDestinatario;
+use App\Models\Entrega;
 use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -12,16 +15,19 @@ class AdminChoferTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(DatabaseSeeder::class);
+    }
+
     public function test_admin_can_create_chofer(): void
     {
-        Sanctum::actingAs(User::factory()->create(['role' => 'admin']));
+        Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
 
         $response = $this->postJson('/api/admin/choferes', [
-            'name' => 'Juan',
-            'apellido' => 'Perez',
-            'dni' => '12345678',
-            'fecha_nacimiento' => '1990-05-10',
-            'licencia' => 'B123456',
+            'nombre_completo' => 'Juan Perez',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
             'password' => '123456',
@@ -30,38 +36,32 @@ class AdminChoferTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('data.email', 'juan@example.com')
-            ->assertJsonPath('data.dni', '12345678')
-            ->assertJsonPath('data.role', 'chofer')
+            ->assertJsonPath('data.rol_id', User::ROL_CHOFER)
             ->assertJsonMissingPath('data.password');
 
         $this->assertDatabaseHas('users', [
             'email' => 'juan@example.com',
-            'dni' => '12345678',
-            'role' => 'chofer',
+            'rol_id' => User::ROL_CHOFER,
         ]);
     }
 
-    public function test_admin_cannot_create_chofer_with_invalid_dni(): void
+    public function test_admin_cannot_create_chofer_with_invalid_nombre(): void
     {
-        Sanctum::actingAs(User::factory()->create(['role' => 'admin']));
+        Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
 
         $this->postJson('/api/admin/choferes', [
-            'name' => 'Juan',
-            'apellido' => 'Perez',
-            'dni' => '12A4567*',
-            'fecha_nacimiento' => '1990-05-10',
-            'licencia' => 'B123456',
+            'nombre_completo' => 'Juan123',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
             'password' => '123456',
         ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('dni');
+            ->assertJsonValidationErrors('nombre_completo');
     }
 
     public function test_chofer_cannot_access_admin_routes(): void
     {
-        Sanctum::actingAs(User::factory()->create(['role' => 'chofer']));
+        Sanctum::actingAs(User::where('email', 'chofer@logistica.com')->first());
 
         $this->getJson('/api/admin/choferes')
             ->assertForbidden()
@@ -77,11 +77,9 @@ class AdminChoferTest extends TestCase
 
     public function test_admin_can_reset_chofer_password(): void
     {
-        Sanctum::actingAs(User::factory()->create(['role' => 'admin']));
-        $chofer = User::factory()->create([
-            'role' => 'chofer',
-            'password' => Hash::make('password-vieja'),
-        ]);
+        Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
+        $chofer = User::where('email', 'chofer@logistica.com')->first();
+        $chofer->update(['password' => 'password-vieja']);
 
         $this->patchJson("/api/admin/choferes/{$chofer->id}/password", [
             'password' => 'password-nueva',

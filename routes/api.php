@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ChoferController;
-use App\Http\Controllers\Api\Admin\EnvioController;
+use App\Http\Controllers\Api\Admin\EntregaController as AdminEntregaController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Chofer\EnvioController as ChoferEnvioController;
+use App\Http\Controllers\Api\Chofer\EntregaController as ChoferEntregaController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -23,7 +23,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login');
 // RUTAS PROTEGIDAS (Sanctum)
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Perfil y Cierre de Sesión
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -34,10 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:chofer')
         ->prefix('chofer')
         ->group(function () {
-            Route::get('envios', [ChoferEnvioController::class, 'index']);
-            Route::get('envios/{envio}', [ChoferEnvioController::class, 'show']); // Agregado: Mejora recomendada
-            Route::patch('envios/{envio}/accept', [ChoferEnvioController::class, 'accept']);
-            Route::patch('envios/{envio}/state', [ChoferEnvioController::class, 'state']);
+            Route::get('entregas', [ChoferEntregaController::class, 'index']);
+            Route::get('entregas/{entrega}', [ChoferEntregaController::class, 'show']);
+            Route::patch('entregas/{entrega}/accept', [ChoferEntregaController::class, 'accept']);
+            Route::patch('entregas/{entrega}/state', [ChoferEntregaController::class, 'state']);
         });
 
     // ----------------------------------------
@@ -51,10 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
                 ->parameters(['choferes' => 'chofer']);
             Route::patch('choferes/{chofer}/password', [ChoferController::class, 'resetPassword']);
 
-            // Gestión de Envíos
-            Route::get('envios', [EnvioController::class, 'index']);
-            Route::post('envios', [EnvioController::class, 'store']);
-            Route::get('envios/{envio}', [EnvioController::class, 'show']); // Agregado: Mejora recomendada
-            Route::patch('envios/{envio}/assign', [EnvioController::class, 'assign']);
+            // Gestión de Entregas
+            Route::get('entregas', [AdminEntregaController::class, 'index']);
+            Route::post('entregas', [AdminEntregaController::class, 'store']);
+            Route::get('entregas/{entrega}', [AdminEntregaController::class, 'show']);
+            Route::patch('entregas/{entrega}/assign', [AdminEntregaController::class, 'assign']);
         });
 });

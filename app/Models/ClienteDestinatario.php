@@ -11,6 +11,8 @@ class ClienteDestinatario extends Model
 {
     use HasFactory;
 
+    protected $table = 'clientes_destinatarios';
+
     public $incrementing = false;
 
     protected $keyType = 'string';

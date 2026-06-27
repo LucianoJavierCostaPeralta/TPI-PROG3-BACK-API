@@ -15,7 +15,7 @@ class EnsureUserHasRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role, $roles, true)) {
+        if (! $user || ! collect($roles)->contains(fn (string $role) => $user->hasRole($role))) {
             return response()->json([
                 'message' => 'No tenes permisos para realizar esta accion.',
             ], Response::HTTP_FORBIDDEN);

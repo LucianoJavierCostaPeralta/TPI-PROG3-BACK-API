@@ -10,12 +10,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 /** @use HasFactory<UserFactory> */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public const ROL_ADMIN = 1;
+
+    public const ROL_CHOFER = 2;
 
     public $incrementing = false;
 
@@ -35,6 +40,40 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+            'activo' => 'boolean',
+        ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol_id === self::ROL_ADMIN;
+    }
+
+    public function isChofer(): bool
+    {
+        return $this->rol_id === self::ROL_CHOFER;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        $this->loadMissing('rol');
+
+        return strtolower($this->rol?->nombre_rol ?? '') === strtolower($role);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            if (empty($user->id)) {
+                $user->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function empresa(): BelongsTo
     {

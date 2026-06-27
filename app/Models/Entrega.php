@@ -6,10 +6,31 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Entrega extends Model
 {
     use HasFactory;
+
+    public const ESTADO_PENDING = 1;
+
+    public const ESTADO_ASSIGNED = 2;
+
+    public const ESTADO_ACCEPTED = 3;
+
+    public const ESTADO_ON_THE_WAY = 4;
+
+    public const ESTADO_DELIVERED = 5;
+
+    public const ESTADO_FINISHED = 6;
+
+    public const ESTADO_CANCELLED = 7;
+
+    public const DRIVER_ESTADOS = [
+        self::ESTADO_ON_THE_WAY,
+        self::ESTADO_DELIVERED,
+        self::ESTADO_FINISHED,
+    ];
 
     public $incrementing = false;
 
@@ -31,6 +52,15 @@ class Entrega extends Model
     protected $casts = [
         'fecha_asignacion' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Entrega $entrega): void {
+            if (empty($entrega->id)) {
+                $entrega->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function empresa(): BelongsTo
     {

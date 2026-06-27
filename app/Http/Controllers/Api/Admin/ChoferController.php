@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class ChoferController extends Controller
@@ -14,8 +13,9 @@ class ChoferController extends Controller
     public function index(): JsonResponse
     {
         $choferes = User::query()
-            ->where('role', 'chofer')
-            ->orderBy('name')
+            ->where('rol_id', User::ROL_CHOFER)
+            ->with('rol:id,nombre_rol')
+            ->orderBy('nombre_completo')
             ->get();
 
         return response()->json([
@@ -26,31 +26,26 @@ class ChoferController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'apellido' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'dni' => ['required', 'digits:8', 'unique:users,dni'],
-            'fecha_nacimiento' => ['required', 'date', 'before:today'],
-            'licencia' => ['required', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z0-9-]+$/'],
+            'nombre_completo' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'telefono' => ['required', 'digits_between:6,20'],
+            'telefono' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:6'],
+            'activo' => ['sometimes', 'boolean'],
         ]);
 
         $chofer = User::create([
-            'name' => $data['name'],
-            'apellido' => $data['apellido'],
-            'dni' => $data['dni'],
-            'fecha_nacimiento' => $data['fecha_nacimiento'],
-            'licencia' => $data['licencia'],
+            'empresa_id' => $request->user()->empresa_id,
+            'rol_id' => User::ROL_CHOFER,
+            'nombre_completo' => $data['nombre_completo'],
             'email' => $data['email'],
-            'telefono' => $data['telefono'],
-            'password' => Hash::make($data['password']),
-            'role' => 'chofer',
+            'telefono' => $data['telefono'] ?? null,
+            'password' => $data['password'],
+            'activo' => $data['activo'] ?? true,
         ]);
 
         return response()->json([
             'message' => 'Chofer creado correctamente.',
-            'data' => $chofer,
+            'data' => $chofer->load('rol:id,nombre_rol'),
         ], 201);
     }
 
@@ -59,7 +54,7 @@ class ChoferController extends Controller
         $this->ensureChofer($chofer);
 
         return response()->json([
-            'data' => $chofer,
+            'data' => $chofer->load('rol:id,nombre_rol'),
         ]);
     }
 
@@ -68,16 +63,7 @@ class ChoferController extends Controller
         $this->ensureChofer($chofer);
 
         $data = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'apellido' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'dni' => [
-                'sometimes',
-                'required',
-                'digits:8',
-                Rule::unique('users', 'dni')->ignore($chofer->id),
-            ],
-            'fecha_nacimiento' => ['sometimes', 'required', 'date', 'before:today'],
-            'licencia' => ['sometimes', 'required', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z0-9-]+$/'],
+            'nombre_completo' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
             'email' => [
                 'sometimes',
                 'required',
@@ -85,14 +71,15 @@ class ChoferController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($chofer->id),
             ],
-            'telefono' => ['sometimes', 'required', 'digits_between:6,20'],
+            'telefono' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'activo' => ['sometimes', 'boolean'],
         ]);
 
         $chofer->update($data);
 
         return response()->json([
             'message' => 'Chofer actualizado correctamente.',
-            'data' => $chofer,
+            'data' => $chofer->load('rol:id,nombre_rol'),
         ]);
     }
 
@@ -105,7 +92,7 @@ class ChoferController extends Controller
         ]);
 
         $chofer->update([
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
         ]);
 
         return response()->json([
@@ -126,6 +113,6 @@ class ChoferController extends Controller
 
     private function ensureChofer(User $user): void
     {
-        abort_if($user->role !== 'chofer', 404, 'Chofer no encontrado.');
+        abort_if(! $user->isChofer(), 404, 'Chofer no encontrado.');
     }
 }

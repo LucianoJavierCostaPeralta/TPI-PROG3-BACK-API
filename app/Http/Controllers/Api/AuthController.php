@@ -18,11 +18,20 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = User::query()
+            ->with('rol:id,nombre_rol')
+            ->where('email', $credentials['email'])
+            ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Las credenciales son incorrectas.'],
+            ]);
+        }
+
+        if (! $user->activo) {
+            throw ValidationException::withMessages([
+                'email' => ['La cuenta se encuentra inactiva.'],
             ]);
         }
 
@@ -37,7 +46,7 @@ class AuthController extends Controller
     public function profile(Request $request): JsonResponse
     {
         return response()->json([
-            'user' => $request->user(),
+            'user' => $request->user()->load('rol:id,nombre_rol', 'empresa:id,razon_social'),
         ]);
     }
 
