@@ -4,6 +4,13 @@ use App\Http\Controllers\Api\Admin\ChoferController;
 use App\Http\Controllers\Api\Admin\EntregaController as AdminEntregaController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chofer\EntregaController as ChoferEntregaController;
+use App\Http\Controllers\Api\V1\EmpresaController;
+use App\Http\Controllers\Api\V1\ClienteDestinatarioController;
+use App\Http\Controllers\Api\V1\ProductoController;
+use App\Http\Controllers\Api\V1\EntregaController;
+use App\Http\Controllers\Api\V1\DetalleEntregaController;
+use App\Http\Controllers\Api\V1\EstadoEntregaController;
+use App\Http\Controllers\Api\V1\ComprobanteEntregaController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -18,6 +25,20 @@ Route::get('/health', function () {
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
+// ==========================================
+// API V1
+// ==========================================
+Route::prefix('v1')
+    ->namespace('App\Http\Controllers\Api\V1')
+    ->group(function () {
+        Route::apiResource('empresas', EmpresaController::class);
+        Route::apiResource('clientes-destinatarios', ClienteDestinatarioController::class);
+        Route::apiResource('productos', ProductoController::class);
+        Route::apiResource('entregas', EntregaController::class);
+        Route::apiResource('detalles-entrega', DetalleEntregaController::class);
+        Route::apiResource('estados-entrega', EstadoEntregaController::class)->only(['index']);
+        Route::apiResource('comprobantes-entrega', ComprobanteEntregaController::class);
+    });
 
 // ==========================================
 // RUTAS PROTEGIDAS (Sanctum)
