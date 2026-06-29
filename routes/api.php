@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\V1\EntregaController;
 use App\Http\Controllers\Api\V1\DetalleEntregaController;
 use App\Http\Controllers\Api\V1\EstadoEntregaController;
 use App\Http\Controllers\Api\V1\ComprobanteEntregaController;
+use App\Http\Controllers\Api\V1\TipoVehiculoController;
+use App\Http\Controllers\Api\V1\VehiculoController;
+use App\Http\Controllers\Api\V1\AsignacionVehiculoController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -38,6 +41,11 @@ Route::prefix('v1')
         Route::apiResource('detalles-entrega', DetalleEntregaController::class);
         Route::apiResource('estados-entrega', EstadoEntregaController::class)->only(['index']);
         Route::apiResource('comprobantes-entrega', ComprobanteEntregaController::class);
+        
+        // Gestión de Flota
+        Route::apiResource('tipos-vehiculo', TipoVehiculoController::class)->only(['index', 'store']);
+        Route::apiResource('vehiculos', VehiculoController::class);
+        Route::apiResource('asignaciones-vehiculos', AsignacionVehiculoController::class);
     });
 
 // ==========================================
