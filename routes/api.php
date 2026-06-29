@@ -14,6 +14,10 @@ use App\Http\Controllers\Api\V1\ComprobanteEntregaController;
 use App\Http\Controllers\Api\V1\TipoVehiculoController;
 use App\Http\Controllers\Api\V1\VehiculoController;
 use App\Http\Controllers\Api\V1\AsignacionVehiculoController;
+use App\Http\Controllers\Api\V1\ZonaCoberturaController;
+use App\Http\Controllers\Api\V1\ChoferZonaController;
+use App\Http\Controllers\Api\V1\JornadaTrabajoController;
+use App\Http\Controllers\Api\V1\MotivoRechazoController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -46,6 +50,12 @@ Route::prefix('v1')
         Route::apiResource('tipos-vehiculo', TipoVehiculoController::class)->only(['index', 'store']);
         Route::apiResource('vehiculos', VehiculoController::class);
         Route::apiResource('asignaciones-vehiculos', AsignacionVehiculoController::class);
+        
+        // Logística y Operaciones
+        Route::apiResource('zonas-cobertura', ZonaCoberturaController::class);
+        Route::apiResource('chofer-zonas', ChoferZonaController::class);
+        Route::apiResource('jornadas-trabajo', JornadaTrabajoController::class);
+        Route::apiResource('motivos-rechazo', MotivoRechazoController::class)->only(['index', 'store']);
     });
 
 // ==========================================
