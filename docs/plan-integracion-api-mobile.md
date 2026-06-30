@@ -81,9 +81,23 @@ Valores admitidos por `fleetSize`:
 - `1-10`
 - `11-30`
 - `31-100`
-- `Mas de 100`
+- `Más de 100`
 
-El backend actual solo crea `razon_social`, `cuit`, `email_contacto` y `telefono`. Falta crear el administrador, persistir o definir el uso de `fleetSize` y validar la aceptacion de terminos.
+El endpoint publico `POST /api/v1/registro` ya crea la empresa y su administrador dentro de una transaccion, registra el tamano de flota y la fecha de aceptacion de terminos, y devuelve un token Sanctum. React Native debe mapear sus nombres camelCase al contrato canonico snake_case.
+
+Contrato canonico de la API:
+
+```json
+{
+  "razon_social": "Transportes UTN",
+  "cuit": "20123456789",
+  "email": "admin@empresa.com",
+  "password": "123456",
+  "telefono": "3511234567",
+  "tamano_flota": "1-10",
+  "terminos_aceptados": true
+}
+```
 
 ### Recuperar contrasena
 
@@ -189,7 +203,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Flujo | Estado actual |
 | --- | --- |
 | Login | Compatible |
-| Registro de empresa y administrador | No implementado |
+| Registro de empresa y administrador | Implementado |
 | Recuperacion y cambio de contrasena | No implementado |
 | Crear chofer | Contrato incompatible |
 | Crear entrega con productos | Contrato incompatible |
@@ -303,7 +317,7 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 
 | Numero | Regla | Estado actual |
 | --- | --- | --- |
-| 1 | Una empresa se registra junto con su administrador. | Pendiente |
+| 1 | Una empresa se registra junto con su administrador. | Implementado |
 | 2 | El administrador solo gestiona datos de su empresa. | Incompleto |
 | 3 | El administrador crea choferes y entregas. | Parcialmente implementado |
 | 4 | Una entrega se crea con sus productos en una transaccion. | Pendiente |

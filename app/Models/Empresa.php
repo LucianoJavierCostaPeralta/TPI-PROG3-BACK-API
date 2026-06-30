@@ -20,7 +20,16 @@ class Empresa extends Model
         'cuit',
         'email_contacto',
         'telefono',
+        'tamano_flota',
+        'terminos_aceptados_en',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'terminos_aceptados_en' => 'datetime',
+        ];
+    }
 
     public function users(): HasMany
     {

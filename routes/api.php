@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\ChoferController;
 use App\Http\Controllers\Api\V1\Admin\EntregaController as AdminEntregaController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\RegistroController;
 use App\Http\Controllers\Api\V1\Chofer\EntregaController as ChoferEntregaController;
 use App\Http\Controllers\Api\V1\Empresas\EmpresaController;
 use App\Http\Controllers\Api\V1\Empresas\RoleController;
@@ -35,14 +36,21 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::post('v1/login', [AuthController::class, 'login'])->name('login');
+Route::post('v1/login', [AuthController::class, 'login'])
+    ->middleware('throttle:5,1')
+    ->name('login');
+Route::post('v1/registro', RegistroController::class)
+    ->middleware('throttle:5,1')
+    ->name('registro');
 
 // ==========================================
 // API V1
 // ==========================================
 Route::prefix('v1')
     ->group(function () {
-        Route::apiResource('empresas', EmpresaController::class);
+        Route::apiResource('empresas', EmpresaController::class)
+            ->except(['store'])
+            ->middleware(['auth:sanctum', 'role:admin']);
         Route::apiResource('clientes-destinatarios', ClienteDestinatarioController::class)
             ->parameters(['clientes-destinatarios' => 'cliente_destinatario']);
         Route::apiResource('productos', ProductoController::class);

@@ -10,109 +10,114 @@ use Illuminate\Validation\Rule;
 
 class ChoferController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $choferes = User::query()
-            ->where('rol_id', User::ROL_CHOFER)
-            ->with('rol:id,nombre_rol')
-            ->orderBy('nombre_completo')
+            ->where("empresa_id", $request->user()->empresa_id)
+            ->where("rol_id", User::ROL_CHOFER)
+            ->with("rol:id,nombre_rol")
+            ->orderBy("nombre_completo")
             ->get();
 
         return response()->json([
-            'data' => $choferes,
+            "data" => $choferes,
         ]);
     }
 
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'nombre_completo' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'telefono' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:6'],
-            'activo' => ['sometimes', 'boolean'],
+            "nombre_completo" => ["required", "string", "min:3", "max:255", "regex:/^[\pL\s]+$/u"],
+            "email" => ["required", "email", "max:255", "unique:users,email"],
+            "telefono" => ["nullable", "string", "max:20"],
+            "password" => ["required", "string", "min:6"],
+            "activo" => ["sometimes", "boolean"],
         ]);
 
         $chofer = User::create([
-            'empresa_id' => $request->user()->empresa_id,
-            'rol_id' => User::ROL_CHOFER,
-            'nombre_completo' => $data['nombre_completo'],
-            'email' => $data['email'],
-            'telefono' => $data['telefono'] ?? null,
-            'password' => $data['password'],
-            'activo' => $data['activo'] ?? true,
+            "empresa_id" => $request->user()->empresa_id,
+            "rol_id" => User::ROL_CHOFER,
+            "nombre_completo" => $data["nombre_completo"],
+            "email" => $data["email"],
+            "telefono" => $data["telefono"] ?? null,
+            "password" => $data["password"],
+            "activo" => $data["activo"] ?? true,
         ]);
 
         return response()->json([
-            'message' => 'Chofer creado correctamente.',
-            'data' => $chofer->load('rol:id,nombre_rol'),
+            "message" => "Chofer creado correctamente.",
+            "data" => $chofer->load("rol:id,nombre_rol"),
         ], 201);
     }
 
-    public function show(User $chofer): JsonResponse
+    public function show(Request $request, User $chofer): JsonResponse
     {
-        $this->ensureChofer($chofer);
+        $this->ensureChofer($request, $chofer);
 
         return response()->json([
-            'data' => $chofer->load('rol:id,nombre_rol'),
+            "data" => $chofer->load("rol:id,nombre_rol"),
         ]);
     }
 
     public function update(Request $request, User $chofer): JsonResponse
     {
-        $this->ensureChofer($chofer);
+        $this->ensureChofer($request, $chofer);
 
         $data = $request->validate([
-            'nombre_completo' => ['sometimes', 'required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\s]+$/u'],
-            'email' => [
-                'sometimes',
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($chofer->id),
+            "nombre_completo" => ["sometimes", "required", "string", "min:3", "max:255", "regex:/^[\pL\s]+$/u"],
+            "email" => [
+                "sometimes",
+                "required",
+                "email",
+                "max:255",
+                Rule::unique("users", "email")->ignore($chofer->id),
             ],
-            'telefono' => ['sometimes', 'nullable', 'string', 'max:20'],
-            'activo' => ['sometimes', 'boolean'],
+            "telefono" => ["sometimes", "nullable", "string", "max:20"],
+            "activo" => ["sometimes", "boolean"],
         ]);
 
         $chofer->update($data);
 
         return response()->json([
-            'message' => 'Chofer actualizado correctamente.',
-            'data' => $chofer->load('rol:id,nombre_rol'),
+            "message" => "Chofer actualizado correctamente.",
+            "data" => $chofer->load("rol:id,nombre_rol"),
         ]);
     }
 
     public function resetPassword(Request $request, User $chofer): JsonResponse
     {
-        $this->ensureChofer($chofer);
+        $this->ensureChofer($request, $chofer);
 
         $data = $request->validate([
-            'password' => ['required', 'string', 'min:6'],
+            "password" => ["required", "string", "min:6"],
         ]);
 
         $chofer->update([
-            'password' => $data['password'],
+            "password" => $data["password"],
         ]);
 
         return response()->json([
-            'message' => 'Contrasena actualizada correctamente.',
+            "message" => "Contrasena actualizada correctamente.",
         ]);
     }
 
-    public function destroy(User $chofer): JsonResponse
+    public function destroy(Request $request, User $chofer): JsonResponse
     {
-        $this->ensureChofer($chofer);
+        $this->ensureChofer($request, $chofer);
 
         $chofer->delete();
 
         return response()->json([
-            'message' => 'Chofer eliminado correctamente.',
+            "message" => "Chofer eliminado correctamente.",
         ]);
     }
 
-    private function ensureChofer(User $user): void
+    private function ensureChofer(Request $request, User $user): void
     {
-        abort_if(! $user->isChofer(), 404, 'Chofer no encontrado.');
+        abort_if(
+            ! $user->isChofer() || $user->empresa_id !== $request->user()->empresa_id,
+            404,
+            "Chofer no encontrado."
+        );
     }
 }
