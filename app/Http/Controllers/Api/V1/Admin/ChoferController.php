@@ -28,6 +28,8 @@ class ChoferController extends Controller
     {
         $data = $request->validate([
             "nombre_completo" => ["required", "string", "min:3", "max:255", "regex:/^[\pL\s]+$/u"],
+            "dni" => ["required", "string", "regex:/^\d{8}$/", "unique:users,dni"],
+            "fecha_nacimiento" => ["required", "date", "before:today"],
             "email" => ["required", "email", "max:255", "unique:users,email"],
             "telefono" => ["nullable", "string", "max:20"],
             "password" => ["required", "string", "min:6"],
@@ -38,6 +40,8 @@ class ChoferController extends Controller
             "empresa_id" => $request->user()->empresa_id,
             "rol_id" => User::ROL_CHOFER,
             "nombre_completo" => $data["nombre_completo"],
+            "dni" => $data["dni"],
+            "fecha_nacimiento" => $data["fecha_nacimiento"],
             "email" => $data["email"],
             "telefono" => $data["telefono"] ?? null,
             "password" => $data["password"],
@@ -65,6 +69,14 @@ class ChoferController extends Controller
 
         $data = $request->validate([
             "nombre_completo" => ["sometimes", "required", "string", "min:3", "max:255", "regex:/^[\pL\s]+$/u"],
+            "dni" => [
+                "sometimes",
+                "required",
+                "string",
+                "regex:/^\d{8}$/",
+                Rule::unique("users", "dni")->ignore($chofer->id),
+            ],
+            "fecha_nacimiento" => ["sometimes", "required", "date", "before:today"],
             "email" => [
                 "sometimes",
                 "required",

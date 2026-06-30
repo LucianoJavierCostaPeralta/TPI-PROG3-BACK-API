@@ -29,11 +29,12 @@ class UserService
      */
     public function create(array $input): User
     {
-        // Validamos que el email sea único en el sistema
         $validator = Validator::make($input, [
             'empresa_id' => 'nullable|uuid|exists:empresas,id',
             'rol_id' => 'required|integer|exists:roles,id',
             'nombre_completo' => 'required|string|max:255',
+            'dni' => 'nullable|string|regex:/^\d{8}$/|unique:users,dni',
+            'fecha_nacimiento' => 'nullable|date|before:today',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'telefono' => 'nullable|string|max:20',
@@ -44,21 +45,34 @@ class UserService
             throw new ValidationException($validator);
         }
 
-        // Verificamos que el rol exista antes de crear el usuario
+        if ((int) $input['rol_id'] === User::ROL_CHOFER) {
+            $missing = [];
+
+            if (empty($input['dni'])) {
+                $missing['dni'] = ['El DNI es obligatorio para choferes.'];
+            }
+
+            if (empty($input['fecha_nacimiento'])) {
+                $missing['fecha_nacimiento'] = ['La fecha de nacimiento es obligatoria para choferes.'];
+            }
+
+            if ($missing !== []) {
+                throw ValidationException::withMessages($missing);
+            }
+        }
+
         $rol = Rol::find($input['rol_id']);
-        if (!$rol) {
+        if (! $rol) {
             throw ValidationException::withMessages([
                 'rol_id' => ['El rol especificado no existe en el sistema.']
             ]);
         }
 
-        // Validamos que el password sea encriptado antes de persistir
         if (isset($input['password'])) {
             $input['password'] = bcrypt($input['password']);
         }
 
-        // Nota: el campo activo por defecto es true si no se proporciona
-        if (!isset($input['activo'])) {
+        if (! isset($input['activo'])) {
             $input['activo'] = true;
         }
 
@@ -88,6 +102,8 @@ class UserService
             'empresa_id' => 'nullable|uuid|exists:empresas,id',
             'rol_id' => 'required|integer|exists:roles,id',
             'nombre_completo' => 'required|string|max:255',
+            'dni' => 'nullable|string|regex:/^\d{8}$/|unique:users,dni,' . $id,
+            'fecha_nacimiento' => 'nullable|date|before:today',
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'sometimes|string|min:8',
             'telefono' => 'nullable|string|max:20',

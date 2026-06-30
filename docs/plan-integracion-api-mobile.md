@@ -122,14 +122,16 @@ Este flujo no esta implementado. El frontend tampoco contempla todavia el token 
 
 ```json
 {
-  "nombre": "Juan Perez",
-  "documento": "12345678",
+  "nombre_completo": "Juan Perez",
+  "dni": "12345678",
+  "fecha_nacimiento": "1990-05-12",
   "email": "juan@email.com",
-  "telefono": "5491112345678"
+  "telefono": "5491112345678",
+  "password": "123456"
 }
 ```
 
-La interfaz indica una contrasena inicial `123456`. Actualmente Laravel espera `nombre_completo` y una `password` obligatoria, y la tabla `users` no contiene `documento`.
+Laravel ahora espera `nombre_completo`, `dni`, `fecha_nacimiento` y una `password` obligatoria. `dni` debe ser numerico de 8 digitos.
 
 ### Crear entrega
 

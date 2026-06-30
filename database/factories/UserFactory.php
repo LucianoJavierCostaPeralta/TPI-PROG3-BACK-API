@@ -21,6 +21,8 @@ class UserFactory extends Factory
             'empresa_id' => Empresa::factory(),
             'rol_id' => User::ROL_CHOFER,
             'nombre_completo' => fake()->name(),
+            'dni' => fake()->numerify('########'),
+            'fecha_nacimiento' => fake()->date('Y-m-d', '2000-01-01'),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= 'password',
             'telefono' => fake()->numerify('##########'),

@@ -53,6 +53,8 @@ class DatabaseSeeder extends Seeder
             [
                 'id' => Str::uuid(),
                 'nombre_completo' => 'Juan Chofer',
+                'dni' => '12345678',
+                'fecha_nacimiento' => '1990-05-12',
                 'password' => Hash::make('123456'),
                 'rol_id' => 2,
                 'empresa_id' => $empresa->id,

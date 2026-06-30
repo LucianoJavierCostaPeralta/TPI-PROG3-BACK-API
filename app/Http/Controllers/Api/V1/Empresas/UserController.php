@@ -44,6 +44,8 @@ class UserController extends Controller
             'empresa_id' => 'nullable|uuid|exists:empresas,id',
             'rol_id' => 'required|integer|exists:roles,id',
             'nombre_completo' => 'required|string|max:255',
+            'dni' => 'nullable|string|regex:/^\d{8}$/|unique:users,dni',
+            'fecha_nacimiento' => 'nullable|date|before:today',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'telefono' => 'nullable|string|max:20',

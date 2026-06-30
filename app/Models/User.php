@@ -31,6 +31,8 @@ class User extends Authenticatable
         'empresa_id',
         'rol_id',
         'nombre_completo',
+        'dni',
+        'fecha_nacimiento',
         'email',
         'password',
         'telefono',
@@ -47,6 +49,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'activo' => 'boolean',
+            'fecha_nacimiento' => 'date',
         ];
     }
 
