@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Logistica;
 
 use App\Http\Controllers\Controller;
 use App\Services\EstadoEntregaService;
+use Illuminate\Http\JsonResponse;
 
 class EstadoEntregaController extends Controller
 {
@@ -16,17 +17,15 @@ class EstadoEntregaController extends Controller
 
     /**
      * Display a listing of the resource (read-only catalog).
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $estados = $this->estadoService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Estados de entrega retrieved successfully',
-            'data' => $estados
+            'data' => $estados,
         ], 200);
     }
 }

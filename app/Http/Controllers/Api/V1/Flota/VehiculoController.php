@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Flota;
 use App\Http\Controllers\Controller;
 use App\Services\VehiculoService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,28 +22,23 @@ class VehiculoController extends Controller
     /**
      * Listar todos los vehículos disponibles.
      * Incluye información de la empresa y tipo de vehículo asociado.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $vehiculos = $this->vehiculoService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Vehículos retrieved successfully',
-            'data' => $vehiculos
+            'data' => $vehiculos,
         ], 200);
     }
 
     /**
      * Registrar un nuevo vehículo en la flota.
      * La patente debe ser única en todo el sistema.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'empresa_id' => 'required|uuid|exists:empresas,id',
@@ -57,24 +53,26 @@ class VehiculoController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Vehículo created successfully',
-            'data' => $vehiculo
+            'data' => $vehiculo,
         ], 201);
     }
 
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
             $vehiculo = $this->vehiculoService->getById($id);
+
             return response()->json(['status' => 'success', 'message' => 'Vehículo retrieved successfully', 'data' => $vehiculo], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);
         }
     }
 
-    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $vehiculo = $this->vehiculoService->update($request->all(), $id);
+
             return response()->json(['status' => 'success', 'message' => 'Vehículo updated successfully', 'data' => $vehiculo], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);
@@ -83,10 +81,11 @@ class VehiculoController extends Controller
         }
     }
 
-    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
             $this->vehiculoService->delete($id);
+
             return response()->json(['status' => 'success', 'message' => 'Vehículo deleted successfully'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);

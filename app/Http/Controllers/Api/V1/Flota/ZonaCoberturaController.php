@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Flota;
 use App\Http\Controllers\Controller;
 use App\Services\ZonaCoberturaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,28 +22,23 @@ class ZonaCoberturaController extends Controller
     /**
      * Listar todas las zonas de cobertura disponibles.
      * Incluye información de la empresa asociada.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $zonas = $this->zonaService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Zonas de cobertura retrieved successfully',
-            'data' => $zonas
+            'data' => $zonas,
         ], 200);
     }
 
     /**
      * Crear una nueva zona de cobertura.
      * El código postal debe ser único para la empresa.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $zona = $this->zonaService->create($request->all());
@@ -50,32 +46,33 @@ class ZonaCoberturaController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Zona de cobertura created successfully',
-                'data' => $zona
+                'data' => $zona,
             ], 201);
-
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }
 
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
             $zona = $this->zonaService->getById($id);
+
             return response()->json(['status' => 'success', 'message' => 'Zona de cobertura retrieved successfully', 'data' => $zona], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);
         }
     }
 
-    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $zona = $this->zonaService->update($request->all(), $id);
+
             return response()->json(['status' => 'success', 'message' => 'Zona de cobertura updated successfully', 'data' => $zona], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);
@@ -84,10 +81,11 @@ class ZonaCoberturaController extends Controller
         }
     }
 
-    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
             $this->zonaService->delete($id);
+
             return response()->json(['status' => 'success', 'message' => 'Zona de cobertura deleted successfully'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);

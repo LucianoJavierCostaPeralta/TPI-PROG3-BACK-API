@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Empresas;
 
 use App\Http\Controllers\Controller;
 use App\Services\RoleService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,28 +21,23 @@ class RoleController extends Controller
     /**
      * Listar todos los roles disponibles.
      * Este endpoint es de solo lectura ya que los roles son catálogos fijos.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $roles = $this->roleService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Roles retrieved successfully',
-            'data' => $roles
+            'data' => $roles,
         ], 200);
     }
 
     /**
      * Crear un nuevo rol.
      * Nota: Este endpoint debería usarse solo durante la configuración inicial del sistema.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $rol = $this->roleService->create($request->all());
@@ -49,7 +45,7 @@ class RoleController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Role created successfully',
-                'data' => $rol
+                'data' => $rol,
             ], 201);
 
         } catch (ValidationException $e) {
@@ -57,7 +53,7 @@ class RoleController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }

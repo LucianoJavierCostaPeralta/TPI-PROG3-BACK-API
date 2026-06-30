@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Logistica;
 
 use App\Http\Controllers\Controller;
 use App\Services\MotivoRechazoService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,28 +21,23 @@ class MotivoRechazoController extends Controller
     /**
      * Listar todos los motivos de rechazo disponibles.
      * Este endpoint es de solo lectura ya que los motivos son catálogos fijos.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $motivos = $this->motivoService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Motivos de rechazo retrieved successfully',
-            'data' => $motivos
+            'data' => $motivos,
         ], 200);
     }
 
     /**
      * Crear un nuevo motivo de rechazo.
      * Nota: Este endpoint debería usarse solo durante la configuración inicial del sistema.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $motivo = $this->motivoService->create($request->all());
@@ -49,7 +45,7 @@ class MotivoRechazoController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Motivo de rechazo created successfully',
-                'data' => $motivo
+                'data' => $motivo,
             ], 201);
 
         } catch (ValidationException $e) {
@@ -57,7 +53,7 @@ class MotivoRechazoController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }

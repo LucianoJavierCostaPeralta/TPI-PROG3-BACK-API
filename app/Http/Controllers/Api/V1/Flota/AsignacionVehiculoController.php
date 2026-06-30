@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Flota;
 use App\Http\Controllers\Controller;
 use App\Services\AsignacionVehiculoService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,28 +22,23 @@ class AsignacionVehiculoController extends Controller
     /**
      * Listar todas las asignaciones de vehículos activas.
      * Incluye información del chofer y vehículo asignado.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $asignaciones = $this->asignacionService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Asignaciones de vehículos retrieved successfully',
-            'data' => $asignaciones
+            'data' => $asignaciones,
         ], 200);
     }
 
     /**
      * Asignar un vehículo a un chofer.
      * La fecha_fin es opcional (null indica que la asignación sigue vigente).
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $asignacion = $this->asignacionService->create($request->all());
@@ -50,32 +46,34 @@ class AsignacionVehiculoController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Asignación de vehículo created successfully',
-                'data' => $asignacion
+                'data' => $asignacion,
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }
 
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
             $asignacion = $this->asignacionService->getById($id);
+
             return response()->json(['status' => 'success', 'message' => 'Asignación retrieved successfully', 'data' => $asignacion], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Asignación not found'], 404);
         }
     }
 
-    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $asignacion = $this->asignacionService->update($request->all(), $id);
+
             return response()->json(['status' => 'success', 'message' => 'Asignación updated successfully', 'data' => $asignacion], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Asignación not found'], 404);
@@ -84,10 +82,11 @@ class AsignacionVehiculoController extends Controller
         }
     }
 
-    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
             $this->asignacionService->delete($id);
+
             return response()->json(['status' => 'success', 'message' => 'Asignación deleted successfully'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Asignación not found'], 404);

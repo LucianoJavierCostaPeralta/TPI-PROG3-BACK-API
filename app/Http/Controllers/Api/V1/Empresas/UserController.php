@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Empresas;
 use App\Http\Controllers\Controller;
 use App\Services\UserService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -21,28 +22,23 @@ class UserController extends Controller
     /**
      * Listar todos los usuarios del sistema.
      * Incluye información de la empresa y rol asociado.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $users = $this->userService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Users retrieved successfully',
-            'data' => $users
+            'data' => $users,
         ], 200);
     }
 
     /**
      * Registrar un nuevo usuario en el sistema.
      * El email debe ser único y el password se encripta automáticamente.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'empresa_id' => 'nullable|uuid|exists:empresas,id',
@@ -59,24 +55,26 @@ class UserController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'User created successfully',
-            'data' => $user
+            'data' => $user,
         ], 201);
     }
 
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
             $user = $this->userService->getById($id);
+
             return response()->json(['status' => 'success', 'message' => 'User retrieved successfully', 'data' => $user], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
     }
 
-    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $user = $this->userService->update($request->all(), $id);
+
             return response()->json(['status' => 'success', 'message' => 'User updated successfully', 'data' => $user], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
@@ -85,10 +83,11 @@ class UserController extends Controller
         }
     }
 
-    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
             $this->userService->delete($id);
+
             return response()->json(['status' => 'success', 'message' => 'User deleted successfully'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);

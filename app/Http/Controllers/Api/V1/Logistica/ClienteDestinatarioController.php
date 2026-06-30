@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Logistica;
 use App\Http\Controllers\Controller;
 use App\Services\ClienteDestinatarioService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -19,27 +20,22 @@ class ClienteDestinatarioController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $clientes = $this->clienteService->getAll();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Clientes destinatarios retrieved successfully',
-            'data' => $clientes
+            'data' => $clientes,
         ], 200);
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): \Illuminate\Http\JsonResponse
+    public function store(Request $request): JsonResponse
     {
         try {
             $cliente = $this->clienteService->create($request->all());
@@ -47,25 +43,22 @@ class ClienteDestinatarioController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cliente destinatario created successfully',
-                'data' => $cliente
+                'data' => $cliente,
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(string $id): \Illuminate\Http\JsonResponse
+    public function show(string $id): JsonResponse
     {
         try {
             $cliente = $this->clienteService->getById($id);
@@ -73,25 +66,21 @@ class ClienteDestinatarioController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cliente destinatario retrieved successfully',
-                'data' => $cliente
+                'data' => $cliente,
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Cliente destinatario not found',
             ], 404);
         }
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         try {
             $cliente = $this->clienteService->update($request->all(), $id);
@@ -99,43 +88,40 @@ class ClienteDestinatarioController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Cliente destinatario updated successfully',
-                'data' => $cliente
+                'data' => $cliente,
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Cliente destinatario not found',
             ], 404);
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         }
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         try {
             $this->clienteService->delete($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cliente destinatario deleted successfully'
+                'message' => 'Cliente destinatario deleted successfully',
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Cliente destinatario not found',
             ], 404);
         }
     }
