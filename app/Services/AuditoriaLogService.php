@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditoriaLog;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -56,7 +57,37 @@ class AuditoriaLogService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar consultas
         return $this->auditoriaLog->with('usuario')->get();
+    }
+
+    public function getById(string $id): AuditoriaLog
+    {
+        return $this->auditoriaLog->with('usuario')->findOrFail($id);
+    }
+
+    public function update(array $registro, string $id): AuditoriaLog
+    {
+        $auditoriaLog = $this->auditoriaLog->findOrFail($id);
+        $validator = Validator::make($registro, [
+            'usuario_id' => 'nullable|uuid|exists:users,id',
+            'tabla_afectada' => 'required|string|max:255',
+            'accion' => 'required|string|max:50',
+            'detalle_json' => 'nullable|array',
+            'fecha_evento' => 'nullable|date',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        if (isset($registro['detalle_json']) && is_array($registro['detalle_json'])) {
+            $registro['detalle_json'] = json_encode($registro['detalle_json']);
+        }
+        $auditoriaLog->update($registro);
+        return $auditoriaLog;
+    }
+
+    public function delete(string $id): bool
+    {
+        $auditoriaLog = $this->auditoriaLog->findOrFail($id);
+        return $auditoriaLog->delete();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ClienteDestinatario;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +38,48 @@ class ClienteDestinatarioService
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->cliente->all();
+    }
+
+    /**
+     * Get a specific cliente destinatario by ID.
+     *
+     * @param string $id
+     * @return ClienteDestinatario
+     * @throws ModelNotFoundException
+     */
+    public function getById(string $id): ClienteDestinatario
+    {
+        return $this->cliente->findOrFail($id);
+    }
+
+    /**
+     * Update an existing cliente destinatario.
+     *
+     * @param array $data
+     * @param string $id
+     * @return ClienteDestinatario
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function update(array $data, string $id): ClienteDestinatario
+    {
+        $cliente = $this->cliente->findOrFail($id);
+        $this->validateClienteData($data);
+        $cliente->update($data);
+        return $cliente;
+    }
+
+    /**
+     * Delete a cliente destinatario.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
+     */
+    public function delete(string $id): bool
+    {
+        $cliente = $this->cliente->findOrFail($id);
+        return $cliente->delete();
     }
 
     /**

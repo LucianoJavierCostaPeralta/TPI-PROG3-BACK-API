@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Vehiculo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -55,7 +56,34 @@ class VehiculoService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para evitar N+1 queries
         return $this->vehiculo->with(['empresa', 'tipo'])->get();
+    }
+
+    public function getById(string $id): Vehiculo
+    {
+        return $this->vehiculo->with(['empresa', 'tipo'])->findOrFail($id);
+    }
+
+    public function update(array $data, string $id): Vehiculo
+    {
+        $vehiculo = $this->vehiculo->findOrFail($id);
+        $validator = Validator::make($data, [
+            'empresa_id' => 'required|uuid|exists:empresas,id',
+            'tipo_id' => 'required|integer|exists:tipos_vehiculo,id',
+            'patente' => 'required|string|max:20|unique:vehiculos,patente,' . $id,
+            'marca_modelo' => 'required|string|max:255',
+            'estado_operativo' => 'sometimes|boolean',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        $vehiculo->update($data);
+        return $vehiculo;
+    }
+
+    public function delete(string $id): bool
+    {
+        $vehiculo = $this->vehiculo->findOrFail($id);
+        return $vehiculo->delete();
     }
 }

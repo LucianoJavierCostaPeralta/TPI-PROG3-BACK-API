@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AsignacionVehiculo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -49,7 +50,33 @@ class AsignacionVehiculoService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar el rendimiento
         return $this->asignacion->with(['usuario', 'vehiculo'])->get();
+    }
+
+    public function getById(string $id): AsignacionVehiculo
+    {
+        return $this->asignacion->with(['usuario', 'vehiculo'])->findOrFail($id);
+    }
+
+    public function update(array $atributos, string $id): AsignacionVehiculo
+    {
+        $asignacion = $this->asignacion->findOrFail($id);
+        $validator = Validator::make($atributos, [
+            'usuario_id' => 'required|uuid|exists:users,id',
+            'vehiculo_id' => 'required|uuid|exists:vehiculos,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'nullable|date|after:fecha_inicio',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        $asignacion->update($atributos);
+        return $asignacion;
+    }
+
+    public function delete(string $id): bool
+    {
+        $asignacion = $this->asignacion->findOrFail($id);
+        return $asignacion->delete();
     }
 }

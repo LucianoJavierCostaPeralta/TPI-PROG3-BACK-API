@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notificacion;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -54,7 +55,36 @@ class NotificacionService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar consultas
         return $this->notificacion->with('usuario')->get();
+    }
+
+    public function getById(string $id): Notificacion
+    {
+        return $this->notificacion->with('usuario')->findOrFail($id);
+    }
+
+    public function update(array $payload, string $id): Notificacion
+    {
+        $notificacion = $this->notificacion->findOrFail($id);
+        $validator = Validator::make($payload, [
+            'usuario_id' => 'required|uuid|exists:users,id',
+            'titulo' => 'required|string|max:255',
+            'mensaje' => 'required|string',
+            'leida' => 'sometimes|boolean',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        if (!isset($payload['leida'])) {
+            $payload['leida'] = false;
+        }
+        $notificacion->update($payload);
+        return $notificacion;
+    }
+
+    public function delete(string $id): bool
+    {
+        $notificacion = $this->notificacion->findOrFail($id);
+        return $notificacion->delete();
     }
 }

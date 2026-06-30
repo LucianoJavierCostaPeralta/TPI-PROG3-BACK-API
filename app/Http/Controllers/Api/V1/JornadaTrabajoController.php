@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\JornadaTrabajoService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 // Controlador encargado de gestionar las jornadas de trabajo - Autor: Ulises
 class JornadaTrabajoController extends Controller
@@ -42,7 +44,6 @@ class JornadaTrabajoController extends Controller
      */
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
-        // Usamos $request->validate() para una validación más directa
         $validated = $request->validate([
             'usuario_id' => 'required|uuid|exists:users,id',
             'fecha_jornada' => 'required|date',
@@ -58,5 +59,37 @@ class JornadaTrabajoController extends Controller
             'message' => 'Jornada de trabajo created successfully',
             'data' => $jornada
         ], 201);
+    }
+
+    public function show(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $jornada = $this->jornadaService->getById($id);
+            return response()->json(['status' => 'success', 'message' => 'Jornada de trabajo retrieved successfully', 'data' => $jornada], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Jornada de trabajo not found'], 404);
+        }
+    }
+
+    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $jornada = $this->jornadaService->update($request->all(), $id);
+            return response()->json(['status' => 'success', 'message' => 'Jornada de trabajo updated successfully', 'data' => $jornada], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Jornada de trabajo not found'], 404);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->jornadaService->delete($id);
+            return response()->json(['status' => 'success', 'message' => 'Jornada de trabajo deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Jornada de trabajo not found'], 404);
+        }
     }
 }

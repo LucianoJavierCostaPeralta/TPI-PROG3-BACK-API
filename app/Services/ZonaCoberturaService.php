@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ZonaCobertura;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -48,7 +49,32 @@ class ZonaCoberturaService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar consultas
         return $this->zona->with('empresa')->get();
+    }
+
+    public function getById(string $id): ZonaCobertura
+    {
+        return $this->zona->with('empresa')->findOrFail($id);
+    }
+
+    public function update(array $input, string $id): ZonaCobertura
+    {
+        $zona = $this->zona->findOrFail($id);
+        $validator = Validator::make($input, [
+            'empresa_id' => 'required|uuid|exists:empresas,id',
+            'nombre_zona' => 'required|string|max:255',
+            'codigo_postal' => 'required|string|max:20',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        $zona->update($input);
+        return $zona;
+    }
+
+    public function delete(string $id): bool
+    {
+        $zona = $this->zona->findOrFail($id);
+        return $zona->delete();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\ChoferZonaService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -53,12 +54,31 @@ class ChoferZonaController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
-            // Retornamos errores de validación con formato estándar
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
+        }
+    }
+
+    public function show(string $usuarioId, string $zonaId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $relacion = $this->choferZonaService->getById($usuarioId, $zonaId);
+            return response()->json(['status' => 'success', 'message' => 'Relación chofer-zona retrieved successfully', 'data' => $relacion], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Relación chofer-zona not found'], 404);
+        }
+    }
+
+    public function destroy(string $usuarioId, string $zonaId): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->choferZonaService->delete($usuarioId, $zonaId);
+            return response()->json(['status' => 'success', 'message' => 'Relación chofer-zona deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Relación chofer-zona not found'], 404);
         }
     }
 }

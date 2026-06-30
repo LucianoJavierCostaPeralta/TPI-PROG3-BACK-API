@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Producto;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +38,48 @@ class ProductoService
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->producto->all();
+    }
+
+    /**
+     * Get a specific producto by ID.
+     *
+     * @param string $id
+     * @return Producto
+     * @throws ModelNotFoundException
+     */
+    public function getById(string $id): Producto
+    {
+        return $this->producto->findOrFail($id);
+    }
+
+    /**
+     * Update an existing producto.
+     *
+     * @param array $data
+     * @param string $id
+     * @return Producto
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function update(array $data, string $id): Producto
+    {
+        $producto = $this->producto->findOrFail($id);
+        $this->validateProductoData($data);
+        $producto->update($data);
+        return $producto;
+    }
+
+    /**
+     * Delete a producto.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
+     */
+    public function delete(string $id): bool
+    {
+        $producto = $this->producto->findOrFail($id);
+        return $producto->delete();
     }
 
     /**

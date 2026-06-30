@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TipoVehiculo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -48,5 +49,30 @@ class TipoVehiculoService
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->tipo->all();
+    }
+
+    public function getById(int $id): TipoVehiculo
+    {
+        return $this->tipo->findOrFail($id);
+    }
+
+    public function update(array $payload, int $id): TipoVehiculo
+    {
+        $tipo = $this->tipo->findOrFail($id);
+        $validator = Validator::make($payload, [
+            'nombre_tipo' => 'required|string|max:100|unique:tipos_vehiculo,nombre_tipo,' . $id,
+            'capacidad_kg' => 'required|numeric|min:0|max:999999.99',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        $tipo->update($payload);
+        return $tipo;
+    }
+
+    public function delete(int $id): bool
+    {
+        $tipo = $this->tipo->findOrFail($id);
+        return $tipo->delete();
     }
 }

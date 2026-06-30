@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Empresa;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -40,17 +41,60 @@ class EmpresaService
     }
 
     /**
+     * Get a specific empresa by ID.
+     *
+     * @param string $id
+     * @return Empresa
+     * @throws ModelNotFoundException
+     */
+    public function getById(string $id): Empresa
+    {
+        return $this->empresa->findOrFail($id);
+    }
+
+    /**
+     * Update an existing empresa.
+     *
+     * @param array $data
+     * @param string $id
+     * @return Empresa
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function update(array $data, string $id): Empresa
+    {
+        $empresa = $this->empresa->findOrFail($id);
+        $this->validateEmpresaData($data, $id);
+        $empresa->update($data);
+        return $empresa;
+    }
+
+    /**
+     * Delete an empresa.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
+     */
+    public function delete(string $id): bool
+    {
+        $empresa = $this->empresa->findOrFail($id);
+        return $empresa->delete();
+    }
+
+    /**
      * Validate empresa data.
      *
      * @param array $data
+     * @param string|null $excludeId
      * @return void
      * @throws ValidationException
      */
-    protected function validateEmpresaData(array $data): void
+    protected function validateEmpresaData(array $data, ?string $excludeId = null): void
     {
         $validator = Validator::make($data, [
             'razon_social' => 'required|string|max:255',
-            'cuit' => 'required|string|max:20|unique:empresas,cuit',
+            'cuit' => 'required|string|max:20|unique:empresas,cuit,' . ($excludeId ?? ''),
             'email_contacto' => 'required|email|max:255',
             'telefono' => 'required|string|max:50',
         ]);

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Rol;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -72,7 +73,39 @@ class UserService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar consultas
         return $this->user->with(['empresa', 'rol'])->get();
+    }
+
+    public function getById(string $id): User
+    {
+        return $this->user->with(['empresa', 'rol'])->findOrFail($id);
+    }
+
+    public function update(array $input, string $id): User
+    {
+        $user = $this->user->findOrFail($id);
+        $validator = Validator::make($input, [
+            'empresa_id' => 'nullable|uuid|exists:empresas,id',
+            'rol_id' => 'required|integer|exists:roles,id',
+            'nombre_completo' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'password' => 'sometimes|string|min:8',
+            'telefono' => 'nullable|string|max:20',
+            'activo' => 'sometimes|boolean',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        if (isset($input['password'])) {
+            $input['password'] = bcrypt($input['password']);
+        }
+        $user->update($input);
+        return $user;
+    }
+
+    public function delete(string $id): bool
+    {
+        $user = $this->user->findOrFail($id);
+        return $user->delete();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DetalleEntrega;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +38,48 @@ class DetalleEntregaService
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
         return $this->detalle->all();
+    }
+
+    /**
+     * Get a specific detalle entrega by ID.
+     *
+     * @param string $id
+     * @return DetalleEntrega
+     * @throws ModelNotFoundException
+     */
+    public function getById(string $id): DetalleEntrega
+    {
+        return $this->detalle->findOrFail($id);
+    }
+
+    /**
+     * Update an existing detalle entrega.
+     *
+     * @param array $data
+     * @param string $id
+     * @return DetalleEntrega
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function update(array $data, string $id): DetalleEntrega
+    {
+        $detalle = $this->detalle->findOrFail($id);
+        $this->validateDetalleData($data);
+        $detalle->update($data);
+        return $detalle;
+    }
+
+    /**
+     * Delete a detalle entrega.
+     *
+     * @param string $id
+     * @return bool
+     * @throws ModelNotFoundException
+     */
+    public function delete(string $id): bool
+    {
+        $detalle = $this->detalle->findOrFail($id);
+        return $detalle->delete();
     }
 
     /**

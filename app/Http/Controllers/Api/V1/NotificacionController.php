@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\NotificacionService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -53,12 +54,43 @@ class NotificacionController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
-            // Manejamos las excepciones de validación con formato estándar
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
+        }
+    }
+
+    public function show(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $notificacion = $this->notificacionService->getById($id);
+            return response()->json(['status' => 'success', 'message' => 'Notificacion retrieved successfully', 'data' => $notificacion], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Notificacion not found'], 404);
+        }
+    }
+
+    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $notificacion = $this->notificacionService->update($request->all(), $id);
+            return response()->json(['status' => 'success', 'message' => 'Notificacion updated successfully', 'data' => $notificacion], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Notificacion not found'], 404);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->notificacionService->delete($id);
+            return response()->json(['status' => 'success', 'message' => 'Notificacion deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Notificacion not found'], 404);
         }
     }
 }

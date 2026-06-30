@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\ZonaCoberturaService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -53,12 +54,43 @@ class ZonaCoberturaController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
-            // Retornamos errores de validación con formato estándar
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
+        }
+    }
+
+    public function show(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $zona = $this->zonaService->getById($id);
+            return response()->json(['status' => 'success', 'message' => 'Zona de cobertura retrieved successfully', 'data' => $zona], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);
+        }
+    }
+
+    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $zona = $this->zonaService->update($request->all(), $id);
+            return response()->json(['status' => 'success', 'message' => 'Zona de cobertura updated successfully', 'data' => $zona], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->zonaService->delete($id);
+            return response()->json(['status' => 'success', 'message' => 'Zona de cobertura deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Zona de cobertura not found'], 404);
         }
     }
 }

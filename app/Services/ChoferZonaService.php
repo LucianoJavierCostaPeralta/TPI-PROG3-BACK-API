@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\ZonaCobertura;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -76,7 +77,6 @@ class ChoferZonaService
      */
     public function getAll(): \Illuminate\Support\Collection
     {
-        // Usamos DB::table para obtener las relaciones con eager loading manual
         return DB::table('chofer_zonas')
             ->join('users', 'chofer_zonas.usuario_id', '=', 'users.id')
             ->join('zonas_cobertura', 'chofer_zonas.zona_id', '=', 'zonas_cobertura.id')
@@ -89,5 +89,41 @@ class ChoferZonaService
                 'zonas_cobertura.codigo_postal'
             )
             ->get();
+    }
+
+    public function getById(string $usuarioId, string $zonaId): \stdClass
+    {
+        $relacion = DB::table('chofer_zonas')
+            ->join('users', 'chofer_zonas.usuario_id', '=', 'users.id')
+            ->join('zonas_cobertura', 'chofer_zonas.zona_id', '=', 'zonas_cobertura.id')
+            ->select(
+                'chofer_zonas.usuario_id',
+                'chofer_zonas.zona_id',
+                'users.name as chofer_nombre',
+                'users.email as chofer_email',
+                'zonas_cobertura.nombre_zona',
+                'zonas_cobertura.codigo_postal'
+            )
+            ->where('chofer_zonas.usuario_id', $usuarioId)
+            ->where('chofer_zonas.zona_id', $zonaId)
+            ->first();
+
+        if (!$relacion) {
+            throw new ModelNotFoundException();
+        }
+        return $relacion;
+    }
+
+    public function delete(string $usuarioId, string $zonaId): bool
+    {
+        $deleted = DB::table('chofer_zonas')
+            ->where('usuario_id', $usuarioId)
+            ->where('zona_id', $zonaId)
+            ->delete();
+
+        if ($deleted === 0) {
+            throw new ModelNotFoundException();
+        }
+        return true;
     }
 }

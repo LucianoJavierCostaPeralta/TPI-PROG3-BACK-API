@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\VehiculoService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 // Controlador encargado de gestionar los vehículos de la flota - Autor: Ulises
 class VehiculoController extends Controller
@@ -42,7 +44,6 @@ class VehiculoController extends Controller
      */
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
-        // Usamos $request->validate() para una validación más directa
         $validated = $request->validate([
             'empresa_id' => 'required|uuid|exists:empresas,id',
             'tipo_id' => 'required|integer|exists:tipos_vehiculo,id',
@@ -58,5 +59,37 @@ class VehiculoController extends Controller
             'message' => 'Vehículo created successfully',
             'data' => $vehiculo
         ], 201);
+    }
+
+    public function show(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $vehiculo = $this->vehiculoService->getById($id);
+            return response()->json(['status' => 'success', 'message' => 'Vehículo retrieved successfully', 'data' => $vehiculo], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);
+        }
+    }
+
+    public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $vehiculo = $this->vehiculoService->update($request->all(), $id);
+            return response()->json(['status' => 'success', 'message' => 'Vehículo updated successfully', 'data' => $vehiculo], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    public function destroy(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->vehiculoService->delete($id);
+            return response()->json(['status' => 'success', 'message' => 'Vehículo deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Vehículo not found'], 404);
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\JornadaTrabajo;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -56,7 +57,37 @@ class JornadaTrabajoService
      */
     public function getAll(): \Illuminate\Database\Eloquent\Collection
     {
-        // Cargamos eager loading para optimizar consultas
         return $this->jornada->with('usuario')->get();
+    }
+
+    public function getById(string $id): JornadaTrabajo
+    {
+        return $this->jornada->with('usuario')->findOrFail($id);
+    }
+
+    public function update(array $data, string $id): JornadaTrabajo
+    {
+        $jornada = $this->jornada->findOrFail($id);
+        $validator = Validator::make($data, [
+            'usuario_id' => 'required|uuid|exists:users,id',
+            'fecha_jornada' => 'required|date',
+            'hora_inicio' => 'nullable|date',
+            'hora_fin' => 'nullable|date|after:hora_inicio',
+            'distancia_recorrida_km' => 'sometimes|numeric|min:0|max:999999.99',
+        ]);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        if (!isset($data['distancia_recorrida_km'])) {
+            $data['distancia_recorrida_km'] = 0.00;
+        }
+        $jornada->update($data);
+        return $jornada;
+    }
+
+    public function delete(string $id): bool
+    {
+        $jornada = $this->jornada->findOrFail($id);
+        return $jornada->delete();
     }
 }

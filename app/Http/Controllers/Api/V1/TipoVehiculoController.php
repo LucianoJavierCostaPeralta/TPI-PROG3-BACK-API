@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\TipoVehiculoService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -53,12 +54,43 @@ class TipoVehiculoController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
-            // Retornamos los errores de validación con formato estándar
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
+        }
+    }
+
+    public function show(int $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $tipo = $this->tipoService->getById($id);
+            return response()->json(['status' => 'success', 'message' => 'Tipo retrieved successfully', 'data' => $tipo], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Tipo not found'], 404);
+        }
+    }
+
+    public function update(Request $request, int $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $tipo = $this->tipoService->update($request->all(), $id);
+            return response()->json(['status' => 'success', 'message' => 'Tipo updated successfully', 'data' => $tipo], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Tipo not found'], 404);
+        } catch (ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    public function destroy(int $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->tipoService->delete($id);
+            return response()->json(['status' => 'success', 'message' => 'Tipo deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Tipo not found'], 404);
         }
     }
 }
