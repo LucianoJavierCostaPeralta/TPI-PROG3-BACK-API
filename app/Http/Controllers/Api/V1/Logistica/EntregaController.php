@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Logistica;
 
 use App\Http\Controllers\Controller;
-use App\Services\ClienteDestinatarioService;
+use App\Services\EntregaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class ClienteDestinatarioController extends Controller
+class EntregaController extends Controller
 {
-    protected ClienteDestinatarioService $clienteService;
+    protected EntregaService $entregaService;
 
-    public function __construct(ClienteDestinatarioService $clienteService)
+    public function __construct(EntregaService $entregaService)
     {
-        $this->clienteService = $clienteService;
+        $this->entregaService = $entregaService;
     }
 
     /**
@@ -24,12 +24,12 @@ class ClienteDestinatarioController extends Controller
      */
     public function index(): \Illuminate\Http\JsonResponse
     {
-        $clientes = $this->clienteService->getAll();
+        $entregas = $this->entregaService->getAll();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Clientes destinatarios retrieved successfully',
-            'data' => $clientes
+            'message' => 'Entregas retrieved successfully',
+            'data' => $entregas
         ], 200);
     }
 
@@ -42,12 +42,12 @@ class ClienteDestinatarioController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $cliente = $this->clienteService->create($request->all());
+            $entrega = $this->entregaService->create($request->all());
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cliente destinatario created successfully',
-                'data' => $cliente
+                'message' => 'Entrega created successfully',
+                'data' => $entrega
             ], 201);
 
         } catch (ValidationException $e) {
@@ -68,18 +68,18 @@ class ClienteDestinatarioController extends Controller
     public function show(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $cliente = $this->clienteService->getById($id);
+            $entrega = $this->entregaService->getById($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cliente destinatario retrieved successfully',
-                'data' => $cliente
+                'message' => 'Entrega retrieved successfully',
+                'data' => $entrega
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Entrega not found'
             ], 404);
         }
     }
@@ -94,18 +94,18 @@ class ClienteDestinatarioController extends Controller
     public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $cliente = $this->clienteService->update($request->all(), $id);
+            $entrega = $this->entregaService->update($request->all(), $id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cliente destinatario updated successfully',
-                'data' => $cliente
+                'message' => 'Entrega updated successfully',
+                'data' => $entrega
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Entrega not found'
             ], 404);
         } catch (ValidationException $e) {
             return response()->json([
@@ -125,17 +125,17 @@ class ClienteDestinatarioController extends Controller
     public function destroy(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $this->clienteService->delete($id);
+            $this->entregaService->delete($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Cliente destinatario deleted successfully'
+                'message' => 'Entrega deleted successfully'
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Cliente destinatario not found'
+                'message' => 'Entrega not found'
             ], 404);
         }
     }

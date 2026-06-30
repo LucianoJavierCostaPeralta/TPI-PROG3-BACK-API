@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Chofer;
+namespace App\Http\Controllers\Api\V1\Chofer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Entrega;

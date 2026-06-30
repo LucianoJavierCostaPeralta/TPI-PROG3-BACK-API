@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Logistica;
 
 use App\Http\Controllers\Controller;
-use App\Services\EmpresaService;
+use App\Services\ClienteDestinatarioService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class EmpresaController extends Controller
+class ClienteDestinatarioController extends Controller
 {
-    protected EmpresaService $empresaService;
+    protected ClienteDestinatarioService $clienteService;
 
-    public function __construct(EmpresaService $empresaService)
+    public function __construct(ClienteDestinatarioService $clienteService)
     {
-        $this->empresaService = $empresaService;
+        $this->clienteService = $clienteService;
     }
 
     /**
@@ -24,12 +24,12 @@ class EmpresaController extends Controller
      */
     public function index(): \Illuminate\Http\JsonResponse
     {
-        $empresas = $this->empresaService->getAll();
+        $clientes = $this->clienteService->getAll();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Empresas retrieved successfully',
-            'data' => $empresas
+            'message' => 'Clientes destinatarios retrieved successfully',
+            'data' => $clientes
         ], 200);
     }
 
@@ -42,12 +42,12 @@ class EmpresaController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $empresa = $this->empresaService->create($request->all());
+            $cliente = $this->clienteService->create($request->all());
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Empresa created successfully',
-                'data' => $empresa
+                'message' => 'Cliente destinatario created successfully',
+                'data' => $cliente
             ], 201);
 
         } catch (ValidationException $e) {
@@ -68,18 +68,18 @@ class EmpresaController extends Controller
     public function show(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $empresa = $this->empresaService->getById($id);
+            $cliente = $this->clienteService->getById($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Empresa retrieved successfully',
-                'data' => $empresa
+                'message' => 'Cliente destinatario retrieved successfully',
+                'data' => $cliente
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Empresa not found'
+                'message' => 'Cliente destinatario not found'
             ], 404);
         }
     }
@@ -94,18 +94,18 @@ class EmpresaController extends Controller
     public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $empresa = $this->empresaService->update($request->all(), $id);
+            $cliente = $this->clienteService->update($request->all(), $id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Empresa updated successfully',
-                'data' => $empresa
+                'message' => 'Cliente destinatario updated successfully',
+                'data' => $cliente
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Empresa not found'
+                'message' => 'Cliente destinatario not found'
             ], 404);
         } catch (ValidationException $e) {
             return response()->json([
@@ -125,17 +125,17 @@ class EmpresaController extends Controller
     public function destroy(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $this->empresaService->delete($id);
+            $this->clienteService->delete($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Empresa deleted successfully'
+                'message' => 'Cliente destinatario deleted successfully'
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Empresa not found'
+                'message' => 'Cliente destinatario not found'
             ], 404);
         }
     }

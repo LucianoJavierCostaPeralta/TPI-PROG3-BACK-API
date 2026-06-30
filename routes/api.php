@@ -1,28 +1,28 @@
 <?php
 
-use App\Http\Controllers\Api\Admin\ChoferController;
-use App\Http\Controllers\Api\Admin\EntregaController as AdminEntregaController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Chofer\EntregaController as ChoferEntregaController;
-use App\Http\Controllers\Api\V1\EmpresaController;
-use App\Http\Controllers\Api\V1\ClienteDestinatarioController;
-use App\Http\Controllers\Api\V1\ProductoController;
-use App\Http\Controllers\Api\V1\EntregaController;
-use App\Http\Controllers\Api\V1\DetalleEntregaController;
-use App\Http\Controllers\Api\V1\EstadoEntregaController;
-use App\Http\Controllers\Api\V1\ComprobanteEntregaController;
-use App\Http\Controllers\Api\V1\TipoVehiculoController;
-use App\Http\Controllers\Api\V1\VehiculoController;
-use App\Http\Controllers\Api\V1\AsignacionVehiculoController;
-use App\Http\Controllers\Api\V1\ZonaCoberturaController;
-use App\Http\Controllers\Api\V1\ChoferZonaController;
-use App\Http\Controllers\Api\V1\JornadaTrabajoController;
-use App\Http\Controllers\Api\V1\MotivoRechazoController;
-use App\Http\Controllers\Api\V1\RoleController;
-use App\Http\Controllers\Api\V1\UserController;
-use App\Http\Controllers\Api\V1\NotificacionController;
-use App\Http\Controllers\Api\V1\AuditoriaLogController;
-use App\Http\Controllers\Api\V1\SolicitudAsesoramientoController;
+use App\Http\Controllers\Api\V1\Admin\ChoferController;
+use App\Http\Controllers\Api\V1\Admin\EntregaController as AdminEntregaController;
+use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Chofer\EntregaController as ChoferEntregaController;
+use App\Http\Controllers\Api\V1\Empresas\EmpresaController;
+use App\Http\Controllers\Api\V1\Logistica\ClienteDestinatarioController;
+use App\Http\Controllers\Api\V1\Logistica\ProductoController;
+use App\Http\Controllers\Api\V1\Logistica\EntregaController;
+use App\Http\Controllers\Api\V1\Logistica\DetalleEntregaController;
+use App\Http\Controllers\Api\V1\Logistica\EstadoEntregaController;
+use App\Http\Controllers\Api\V1\Logistica\ComprobanteEntregaController;
+use App\Http\Controllers\Api\V1\Flota\TipoVehiculoController;
+use App\Http\Controllers\Api\V1\Flota\VehiculoController;
+use App\Http\Controllers\Api\V1\Flota\AsignacionVehiculoController;
+use App\Http\Controllers\Api\V1\Flota\ZonaCoberturaController;
+use App\Http\Controllers\Api\V1\Flota\ChoferZonaController;
+use App\Http\Controllers\Api\V1\Flota\JornadaTrabajoController;
+use App\Http\Controllers\Api\V1\Logistica\MotivoRechazoController;
+use App\Http\Controllers\Api\V1\Empresas\RoleController;
+use App\Http\Controllers\Api\V1\Empresas\UserController;
+use App\Http\Controllers\Api\V1\Soporte\NotificacionController;
+use App\Http\Controllers\Api\V1\Soporte\AuditoriaLogController;
+use App\Http\Controllers\Api\V1\Soporte\SolicitudAsesoramientoController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -50,18 +50,18 @@ Route::prefix('v1')
         Route::apiResource('detalles-entrega', DetalleEntregaController::class);
         Route::apiResource('estados-entrega', EstadoEntregaController::class)->only(['index']);
         Route::apiResource('comprobantes-entrega', ComprobanteEntregaController::class);
-        
+
         // Gestión de Flota
         Route::apiResource('tipos-vehiculo', TipoVehiculoController::class)->only(['index', 'store']);
         Route::apiResource('vehiculos', VehiculoController::class);
         Route::apiResource('asignaciones-vehiculos', AsignacionVehiculoController::class);
-        
+
         // Logística y Operaciones
         Route::apiResource('zonas-cobertura', ZonaCoberturaController::class);
         Route::apiResource('chofer-zonas', ChoferZonaController::class);
         Route::apiResource('jornadas-trabajo', JornadaTrabajoController::class);
         Route::apiResource('motivos-rechazo', MotivoRechazoController::class)->only(['index', 'store']);
-        
+
         // Soporte y Sistema
         Route::apiResource('roles', RoleController::class)->only(['index', 'store']);
         Route::apiResource('users', UserController::class);

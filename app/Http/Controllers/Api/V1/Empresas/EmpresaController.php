@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Empresas;
 
 use App\Http\Controllers\Controller;
-use App\Services\EntregaService;
+use App\Services\EmpresaService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class EntregaController extends Controller
+class EmpresaController extends Controller
 {
-    protected EntregaService $entregaService;
+    protected EmpresaService $empresaService;
 
-    public function __construct(EntregaService $entregaService)
+    public function __construct(EmpresaService $empresaService)
     {
-        $this->entregaService = $entregaService;
+        $this->empresaService = $empresaService;
     }
 
     /**
@@ -24,12 +24,12 @@ class EntregaController extends Controller
      */
     public function index(): \Illuminate\Http\JsonResponse
     {
-        $entregas = $this->entregaService->getAll();
+        $empresas = $this->empresaService->getAll();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Entregas retrieved successfully',
-            'data' => $entregas
+            'message' => 'Empresas retrieved successfully',
+            'data' => $empresas
         ], 200);
     }
 
@@ -42,12 +42,12 @@ class EntregaController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $entrega = $this->entregaService->create($request->all());
+            $empresa = $this->empresaService->create($request->all());
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Entrega created successfully',
-                'data' => $entrega
+                'message' => 'Empresa created successfully',
+                'data' => $empresa
             ], 201);
 
         } catch (ValidationException $e) {
@@ -68,18 +68,18 @@ class EntregaController extends Controller
     public function show(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $entrega = $this->entregaService->getById($id);
+            $empresa = $this->empresaService->getById($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Entrega retrieved successfully',
-                'data' => $entrega
+                'message' => 'Empresa retrieved successfully',
+                'data' => $empresa
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Entrega not found'
+                'message' => 'Empresa not found'
             ], 404);
         }
     }
@@ -94,18 +94,18 @@ class EntregaController extends Controller
     public function update(Request $request, string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $entrega = $this->entregaService->update($request->all(), $id);
+            $empresa = $this->empresaService->update($request->all(), $id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Entrega updated successfully',
-                'data' => $entrega
+                'message' => 'Empresa updated successfully',
+                'data' => $empresa
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Entrega not found'
+                'message' => 'Empresa not found'
             ], 404);
         } catch (ValidationException $e) {
             return response()->json([
@@ -125,17 +125,17 @@ class EntregaController extends Controller
     public function destroy(string $id): \Illuminate\Http\JsonResponse
     {
         try {
-            $this->entregaService->delete($id);
+            $this->empresaService->delete($id);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Entrega deleted successfully'
+                'message' => 'Empresa deleted successfully'
             ], 200);
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Entrega not found'
+                'message' => 'Empresa not found'
             ], 404);
         }
     }
