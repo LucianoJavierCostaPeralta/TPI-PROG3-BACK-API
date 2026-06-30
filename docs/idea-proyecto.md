@@ -51,9 +51,9 @@ Mas adelante se puede agregar recuperacion por email.
 
 ## Estado tecnico actual
 
-- Login con Sanctum implementado: POST /api/login.
-- Usuario autenticado implementado: GET /api/profile.
-- Logout implementado: POST /api/logout.
+- Login con Sanctum implementado: POST /api/v1/login.
+- Usuario autenticado implementado: GET /api/v1/profile.
+- Logout implementado: POST /api/v1/logout.
 - Campo role agregado a users.
 - Admin inicial creado por DatabaseSeeder: admin@admin.com.
 - Proyecto Laravel creado.
@@ -80,27 +80,27 @@ Mas adelante se puede agregar recuperacion por email.
 
 Autenticacion:
 
-- POST /api/login
-- POST /api/logout
-- GET /api/profile
+- POST /api/v1/login
+- POST /api/v1/logout
+- GET /api/v1/profile
 
 Admin:
 
-- POST /api/admin/choferes
-- GET /api/admin/choferes
-- GET /api/admin/choferes/{id}
-- PUT/PATCH /api/admin/choferes/{id}
-- DELETE /api/admin/choferes/{id}
-- PATCH /api/admin/choferes/{id}/password
-- POST /api/admin/envios
-- GET /api/admin/envios
-- PATCH /api/admin/envios/{id}/assign
+- POST /api/v1/admin/choferes
+- GET /api/v1/admin/choferes
+- GET /api/v1/admin/choferes/{id}
+- PUT/PATCH /api/v1/admin/choferes/{id}
+- DELETE /api/v1/admin/choferes/{id}
+- PATCH /api/v1/admin/choferes/{id}/password
+- POST /api/v1/admin/entregas
+- GET /api/v1/admin/entregas
+- PATCH /api/v1/admin/entregas/{id}/assign
 
 Chofer:
 
-- GET /api/chofer/envios
-- PATCH /api/chofer/envios/{id}/accept
-- PATCH /api/chofer/envios/{id}/state
+- GET /api/v1/chofer/entregas
+- PATCH /api/v1/chofer/entregas/{id}/accept
+- PATCH /api/v1/chofer/entregas/{id}/state
 
 ## States posibles de un envio
 

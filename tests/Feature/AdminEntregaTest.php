@@ -30,7 +30,7 @@ class AdminEntregaTest extends TestCase
             'empresa_id' => $admin->empresa_id,
         ]);
 
-        $response = $this->postJson('/api/admin/entregas', [
+        $response = $this->postJson('/api/v1/admin/entregas', [
             'cliente_id' => $cliente->id,
             'direccion_destino' => 'Calle 321',
             'referencia' => 'Paquetes medianos',
@@ -61,7 +61,7 @@ class AdminEntregaTest extends TestCase
             'estado_id' => Entrega::ESTADO_PENDING,
         ]);
 
-        $this->getJson('/api/admin/entregas')
+        $this->getJson('/api/v1/admin/entregas')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.estado_id', Entrega::ESTADO_PENDING);
@@ -79,7 +79,7 @@ class AdminEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->getJson("/api/admin/entregas/{$entrega->id}")
+        $this->getJson("/api/v1/admin/entregas/{$entrega->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $entrega->id);
     }
@@ -98,7 +98,7 @@ class AdminEntregaTest extends TestCase
             'estado_id' => Entrega::ESTADO_PENDING,
         ]);
 
-        $this->patchJson("/api/admin/entregas/{$entrega->id}/assign", [
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}/assign", [
             'chofer_id' => $chofer->id,
         ])
             ->assertOk()
@@ -127,7 +127,7 @@ class AdminEntregaTest extends TestCase
             'estado_id' => Entrega::ESTADO_ACCEPTED,
         ]);
 
-        $this->patchJson("/api/admin/entregas/{$entrega->id}/assign", [
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}/assign", [
             'chofer_id' => $chofer->id,
         ])
             ->assertUnprocessable()
@@ -147,7 +147,7 @@ class AdminEntregaTest extends TestCase
             'estado_id' => Entrega::ESTADO_PENDING,
         ]);
 
-        $this->patchJson("/api/admin/entregas/{$entrega->id}/assign", [
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}/assign", [
             'chofer_id' => $admin->id,
         ])
             ->assertUnprocessable()

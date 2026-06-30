@@ -32,7 +32,7 @@ class ChoferEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->getJson('/api/chofer/entregas')
+        $this->getJson('/api/v1/chofer/entregas')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.estado_id', Entrega::ESTADO_ASSIGNED);
@@ -49,7 +49,7 @@ class ChoferEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->getJson("/api/chofer/entregas/{$entrega->id}")
+        $this->getJson("/api/v1/chofer/entregas/{$entrega->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $entrega->id);
     }
@@ -65,7 +65,7 @@ class ChoferEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->patchJson("/api/chofer/entregas/{$entrega->id}/accept")
+        $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/accept")
             ->assertOk()
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_ACCEPTED);
     }
@@ -81,13 +81,13 @@ class ChoferEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->patchJson("/api/chofer/entregas/{$entrega->id}/state", [
+        $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/state", [
             'estado_id' => Entrega::ESTADO_ON_THE_WAY,
         ])
             ->assertOk()
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_ON_THE_WAY);
 
-        $this->patchJson("/api/chofer/entregas/{$entrega->id}/state", [
+        $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/state", [
             'estado_id' => Entrega::ESTADO_DELIVERED,
         ])
             ->assertOk()
@@ -110,7 +110,7 @@ class ChoferEntregaTest extends TestCase
             ])->id,
         ]);
 
-        $this->patchJson("/api/chofer/entregas/{$entrega->id}/accept")
+        $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/accept")
             ->assertNotFound();
     }
 }

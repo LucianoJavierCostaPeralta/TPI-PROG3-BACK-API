@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\ClienteDestinatario;
-use App\Models\Entrega;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +24,7 @@ class AdminChoferTest extends TestCase
     {
         Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
 
-        $response = $this->postJson('/api/admin/choferes', [
+        $response = $this->postJson('/api/v1/admin/choferes', [
             'nombre_completo' => 'Juan Perez',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
@@ -49,7 +47,7 @@ class AdminChoferTest extends TestCase
     {
         Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
 
-        $this->postJson('/api/admin/choferes', [
+        $this->postJson('/api/v1/admin/choferes', [
             'nombre_completo' => 'Juan123',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
@@ -63,14 +61,14 @@ class AdminChoferTest extends TestCase
     {
         Sanctum::actingAs(User::where('email', 'chofer@logistica.com')->first());
 
-        $this->getJson('/api/admin/choferes')
+        $this->getJson('/api/v1/admin/choferes')
             ->assertForbidden()
             ->assertJsonPath('message', 'No tenes permisos para realizar esta accion.');
     }
 
     public function test_guest_cannot_access_admin_routes(): void
     {
-        $this->getJson('/api/admin/choferes')
+        $this->getJson('/api/v1/admin/choferes')
             ->assertUnauthorized()
             ->assertJsonPath('message', 'No autenticado.');
     }
@@ -81,7 +79,7 @@ class AdminChoferTest extends TestCase
         $chofer = User::where('email', 'chofer@logistica.com')->first();
         $chofer->update(['password' => 'password-vieja']);
 
-        $this->patchJson("/api/admin/choferes/{$chofer->id}/password", [
+        $this->patchJson("/api/v1/admin/choferes/{$chofer->id}/password", [
             'password' => 'password-nueva',
         ])->assertOk();
 
