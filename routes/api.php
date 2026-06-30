@@ -18,6 +18,11 @@ use App\Http\Controllers\Api\V1\ZonaCoberturaController;
 use App\Http\Controllers\Api\V1\ChoferZonaController;
 use App\Http\Controllers\Api\V1\JornadaTrabajoController;
 use App\Http\Controllers\Api\V1\MotivoRechazoController;
+use App\Http\Controllers\Api\V1\RoleController;
+use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\NotificacionController;
+use App\Http\Controllers\Api\V1\AuditoriaLogController;
+use App\Http\Controllers\Api\V1\SolicitudAsesoramientoController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -56,6 +61,13 @@ Route::prefix('v1')
         Route::apiResource('chofer-zonas', ChoferZonaController::class);
         Route::apiResource('jornadas-trabajo', JornadaTrabajoController::class);
         Route::apiResource('motivos-rechazo', MotivoRechazoController::class)->only(['index', 'store']);
+        
+        // Soporte y Sistema
+        Route::apiResource('roles', RoleController::class)->only(['index', 'store']);
+        Route::apiResource('users', UserController::class);
+        Route::apiResource('notificaciones', NotificacionController::class);
+        Route::apiResource('auditoria-logs', AuditoriaLogController::class);
+        Route::apiResource('solicitudes-asesoramiento', SolicitudAsesoramientoController::class);
     });
 
 // ==========================================
