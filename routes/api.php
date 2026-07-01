@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\Admin\ChoferController;
 use App\Http\Controllers\Api\V1\Admin\EntregaController as AdminEntregaController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
@@ -13,12 +14,7 @@ use Illuminate\Support\Facades\Route;
 // ==========================================
 // RUTAS PÚBLICAS
 // ==========================================
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'message' => 'API REST funcionando',
-    ]);
-});
+Route::get('/health', HealthController::class);
 
 Route::post('v1/login', [AuthController::class, 'login'])
     ->middleware('throttle:5,1')
