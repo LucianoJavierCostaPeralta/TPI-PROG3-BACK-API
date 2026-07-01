@@ -95,6 +95,7 @@ class ChoferEntregaTest extends TestCase
 
         $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/state", [
             'estado_id' => Entrega::ESTADO_DELIVERED,
+            'cliente_dni' => $entrega->cliente_dni,
         ])
             ->assertOk()
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_DELIVERED);

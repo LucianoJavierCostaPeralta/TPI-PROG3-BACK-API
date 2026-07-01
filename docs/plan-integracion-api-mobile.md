@@ -10,7 +10,7 @@ Este documento centraliza el estado actual del backend Laravel, el contrato espe
 2. El sistema crea la empresa y su usuario administrador en una misma transaccion.
 3. El administrador inicia sesion y gestiona exclusivamente los datos de su empresa.
 4. El administrador crea choferes y entregas.
-5. Para el MVP, cada entrega almacena un unico cliente y un unico producto como campos de texto.
+5. Para el MVP, cada entrega almacena el nombre y DNI del cliente, y un unico producto como campos directos.
 6. El administrador asigna o desasigna una entrega a un chofer de su empresa.
 7. El chofer consulta solamente sus entregas asignadas.
 8. El chofer acepta una entrega y actualiza su estado.
@@ -22,7 +22,7 @@ Este documento centraliza el estado actual del backend Laravel, el contrato espe
 ### Administrador
 
 - Pertenece a una empresa.
-- Gestiona choferes, administradores, vehiculos, zonas y entregas de su empresa. Para el MVP, cliente y producto se cargan directamente en la entrega.
+- Gestiona choferes, administradores, vehiculos, zonas y entregas de su empresa. Para el MVP, nombre y DNI del cliente, y producto se cargan directamente en la entrega.
 - Asigna y desasigna entregas a choferes de su empresa.
 - No puede consultar ni modificar informacion de otras empresas.
 
@@ -138,13 +138,14 @@ Laravel ahora espera `nombre_completo`, `dni`, `fecha_nacimiento` y una `passwor
 ```json
 {
   "cliente": "Comercio Centro",
+  "cliente_dni": "30123456",
   "producto": "Caja de documentos",
   "direccion_destino": "Av. Colon 1234",
   "referencia": "Entregar por recepcion"
 }
 ```
 
-Este es el contrato MVP implementado y probado. `cliente` y `producto` son campos de texto de la entrega; no requieren UUID ni recursos separados. La empresa se obtiene del administrador autenticado, el estado inicial es `pending` y `referencia` es opcional. El alta no utiliza `cantidad`, `latitud` ni `longitud`.
+Este es el contrato MVP implementado y probado. `cliente`, `cliente_dni` y `producto` son campos directos de la entrega; el DNI contiene exactamente 8 digitos y se usa para verificar la recepcion. `cliente` y `producto` son campos de texto de la entrega; no requieren UUID ni recursos separados. La empresa se obtiene del administrador autenticado, el estado inicial es `pending` y `referencia` es opcional. El alta no utiliza `cantidad`, `latitud` ni `longitud`.
 
 ### Asignar o desasignar chofer
 
@@ -168,13 +169,24 @@ Implementado y probado en el contrato: un UUID asigna o reasigna un chofer de la
 
 ### Actualizar estado
 
+Cambio ordinario:
+
 ```json
 {
   "estado_id": 4
 }
 ```
 
-El chofer usa `PATCH /api/v1/chofer/entregas/{entrega}/state`. Las transiciones permitidas son secuenciales y cada cambio se registra de forma atomica en el historial.
+Para pasar de `on_the_way` a `delivered`, el chofer debe ingresar el DNI del cliente:
+
+```json
+{
+  "estado_id": 5,
+  "cliente_dni": "30123456"
+}
+```
+
+El chofer usa `PATCH /api/v1/chofer/entregas/{entrega}/state`. Las transiciones permitidas son secuenciales y cada cambio se registra de forma atomica en el historial. El paso a `delivered` requiere que `cliente_dni` coincida; el DNI esperado no se expone en las respuestas del chofer.
 
 Estados usados por la aplicacion:
 
@@ -208,7 +220,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Registro de empresa y administrador | Implementado |
 | Recuperacion y cambio de contrasena | No implementado |
 | Crear y gestionar choferes | Implementado |
-| Crear entrega con cliente y producto | Implementado y probado para el MVP |
+| Crear entrega con nombre y DNI del cliente, y producto | Implementado y probado para el MVP |
 | Asignar o reasignar chofer | Implementado |
 | Desasignar chofer | Implementado |
 | Aceptar y actualizar estado | Implementado y probado |
@@ -235,7 +247,7 @@ Cumplido. El esquema contiene mas de diez relaciones mediante claves foraneas.
 
 ### Maestro-detalle y transacciones
 
-El esquema maestro-detalle historico permanece disponible. La regla del MVP lo reemplaza en el flujo activo: una entrega guarda un unico `cliente` y un unico `producto` como texto, por lo que el alta se resuelve con una sola insercion y no requiere una transaccion maestro-detalle.
+El esquema maestro-detalle historico permanece disponible. La regla del MVP lo reemplaza en el flujo activo: una entrega guarda `cliente`, `cliente_dni` y `producto` como campos directos, por lo que el alta se resuelve con una sola insercion y no requiere una transaccion maestro-detalle.
 
 ### Historial de estados
 
@@ -282,7 +294,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 | 1 | Registro de empresa y administrador | Completada |
 | 2 | Recuperacion y cambio de contrasena | Pendiente |
 | 3 | Gestion de choferes adaptada al contrato movil | Completada |
-| 4 | Entregas MVP con cliente y producto como campos | Completada y probada |
+| 4 | Entregas MVP con cliente, cliente_dni y producto como campos | Completada y probada |
 | 5 | Asignacion, reasignacion y desasignacion de choferes | Completada y probada |
 | 6 | Estados canonicos e historial transaccional | Completada y probada |
 | 7 | Resumen para la pantalla principal | Pendiente |
@@ -314,7 +326,7 @@ Este plan surgio de la primera revision de arquitectura y debe conservarse junto
 | 1 | Una empresa se registra junto con su administrador. | Implementado |
 | 2 | El administrador solo gestiona datos de su empresa. | Implementado en los recursos del MVP |
 | 3 | El administrador crea choferes y entregas. | Implementado |
-| 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
+| 4 | Una entrega guarda nombre y DNI del cliente, y producto como campos directos. | Implementado y probado para el MVP |
 | 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Implementado |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
 | 7 | Cada cambio de estado crea un historial en la misma transaccion. | Implementado y probado |
@@ -349,7 +361,7 @@ Funciona y fue probado manualmente:
 
 - Registro de empresa y administrador con token Sanctum.
 - CRUD administrativo de choferes restringido por empresa.
-- Alta de entrega MVP con `cliente`, `producto`, `direccion_destino` y `referencia` opcional.
+- Alta de entrega MVP con `cliente`, `cliente_dni`, `producto`, `direccion_destino` y `referencia` opcional.
 - Empresa obtenida del administrador autenticado y estado inicial `pending`.
 - Asignacion, reasignacion y desasignacion de choferes de la misma empresa.
 - Aceptacion y avance secuencial `assigned -> accepted -> on_the_way -> delivered -> finished`.
@@ -436,9 +448,9 @@ Los cinco frentes obligatorios quedaron ejecutados:
 4. La validacion final obtuvo los siguientes resultados:
    - sintaxis valida en todos los archivos PHP de `app`, `routes`, `database` y `tests`;
    - 100 rutas API registradas correctamente;
-   - 52 pruebas descubiertas: 21 sin base de datos pasan y 31 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
+   - 56 pruebas descubiertas: 21 sin base de datos pasan y 35 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
    - Pint pasa en todos los archivos modificados. La ejecucion global detecta deuda de formato preexistente en modelos, servicios y migraciones heredados, fuera del alcance funcional del cierre;
    - la secuencia manual reproducible quedo documentada en `docs/pruebas-manuales-insomnia-mvp.md`.
-5. El cierre conserva el contrato MVP: `cliente` y `producto` son textos de `Entrega`; no se incorporaron `fecha_programada`, `cantidad`, `latitud` ni `longitud`.
+5. El cierre conserva el contrato MVP: `cliente`, `cliente_dni` y `producto` son campos directos de `Entrega`; no se incorporaron `fecha_programada`, `cantidad`, `latitud` ni `longitud`.
 
 Para ejecutar toda la suite automatica queda como requisito de entorno instalar o habilitar `pdo_sqlite`. Como alternativa inmediata, ejecutar la guia de Insomnia contra una base MySQL de prueba migrada desde cero.

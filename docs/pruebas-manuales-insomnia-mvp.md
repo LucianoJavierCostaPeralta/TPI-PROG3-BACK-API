@@ -85,6 +85,7 @@ Resultado esperado: `200`, rol `Chofer`. Guardar `token` como `chofer_token`.
 ```json
 {
   "cliente": "Comercio Centro",
+  "cliente_dni": "30123456",
   "producto": "Caja de documentos",
   "direccion_destino": "Av. Colon 1234",
   "referencia": "Entregar por recepcion"
@@ -122,7 +123,7 @@ Usar `chofer_token`:
 1. `GET {{ base_url }}/api/v1/chofer/entregas`: contiene solo la entrega asignada al chofer.
 2. `PATCH {{ base_url }}/api/v1/chofer/entregas/{{ entrega_id }}/accept`: devuelve `estado_id: 3`.
 3. `PATCH {{ base_url }}/api/v1/chofer/entregas/{{ entrega_id }}/state` con `{"estado_id": 4}`.
-4. Repetir el cambio de estado con `{"estado_id": 5}`.
+4. Repetir el cambio de estado con `{"estado_id": 5, "cliente_dni": "30123456"}`; un DNI faltante o incorrecto debe responder `422` sin cambiar el estado.
 5. Repetir el cambio de estado con `{"estado_id": 6}`.
 6. `GET {{ base_url }}/api/v1/chofer/entregas/{{ entrega_id }}`: verifica el historial completo y ordenado.
 
@@ -138,4 +139,4 @@ Todos los cambios deben responder `200`. Un salto no secuencial debe responder `
 
 ## Restricciones del contrato MVP
 
-No enviar `fecha_programada`, `cantidad`, `latitud` ni `longitud`. `cliente` y `producto` son textos directos de la entrega.
+No enviar `fecha_programada`, `cantidad`, `latitud` ni `longitud`. `cliente`, `cliente_dni` y `producto` son campos directos de la entrega. El chofer no recibe el DNI esperado y debe ingresarlo para marcarla como entregada.

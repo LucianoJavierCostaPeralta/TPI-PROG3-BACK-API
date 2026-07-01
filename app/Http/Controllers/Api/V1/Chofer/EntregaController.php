@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class EntregaController extends Controller
 {
@@ -20,6 +21,7 @@ class EntregaController extends Controller
             ])
             ->latest()
             ->get();
+        $entregas->makeHidden('cliente_dni');
 
         return response()->json([
             'data' => $entregas,
@@ -36,7 +38,7 @@ class EntregaController extends Controller
                 'historialEstados.estadoAnterior:id,nombre_estado',
                 'historialEstados.estadoNuevo:id,nombre_estado',
                 'historialEstados.usuario:id,nombre_completo',
-            ]),
+            ])->makeHidden('cliente_dni'),
         ]);
     }
 
@@ -67,7 +69,7 @@ class EntregaController extends Controller
 
         return response()->json([
             'message' => 'Entrega aceptada correctamente.',
-            'data' => $entrega->load('estado:id,nombre_estado'),
+            'data' => $entrega->load('estado:id,nombre_estado')->makeHidden('cliente_dni'),
         ]);
     }
 
@@ -77,12 +79,25 @@ class EntregaController extends Controller
 
         $data = $request->validate([
             'estado_id' => ['required', 'integer', Rule::in(Entrega::DRIVER_ESTADOS)],
+            'cliente_dni' => [
+                'exclude_unless:estado_id,'.Entrega::ESTADO_DELIVERED,
+                'required',
+                'string',
+                'regex:/^\d{8}$/',
+            ],
         ]);
 
         if (! $this->canMoveToEstado($entrega->estado_id, $data['estado_id'])) {
             return response()->json([
                 'message' => 'Cambio de estado no permitido para esta entrega.',
             ], 422);
+        }
+
+        if ($data['estado_id'] === Entrega::ESTADO_DELIVERED
+            && ! hash_equals((string) $entrega->cliente_dni, $data['cliente_dni'])) {
+            throw ValidationException::withMessages([
+                'cliente_dni' => ['El DNI no coincide con el cliente de la entrega.'],
+            ]);
         }
 
         $estadoAnteriorId = $entrega->estado_id;
@@ -102,7 +117,7 @@ class EntregaController extends Controller
 
         return response()->json([
             'message' => 'Estado de la entrega actualizado correctamente.',
-            'data' => $entrega->load('estado:id,nombre_estado'),
+            'data' => $entrega->load('estado:id,nombre_estado')->makeHidden('cliente_dni'),
         ]);
     }
 
