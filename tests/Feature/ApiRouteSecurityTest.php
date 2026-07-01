@@ -25,6 +25,7 @@ class ApiRouteSecurityTest extends TestCase
             ['GET', '/api/v1/empresas'],
             ['GET', '/api/v1/users'],
             ['GET', '/api/v1/estados-entrega'],
+            ['GET', '/api/v1/admin/resumen'],
             ['GET', '/api/v1/admin/choferes'],
             ['GET', '/api/v1/admin/entregas'],
             ['GET', '/api/v1/chofer/entregas'],

@@ -210,7 +210,7 @@ La pantalla principal espera un objeto con esta estructura general:
 }
 ```
 
-Actualmente no existe un endpoint agregado que entregue esta informacion. El endpoint de perfil devuelve solamente `user`, con las relaciones `rol` y `empresa`.
+El endpoint agregado existe en `GET /api/v1/admin/resumen` y devuelve el usuario autenticado, la empresa, los choferes, las entregas y los administradores de la misma empresa.
 
 ## Comparacion funcional
 
@@ -226,7 +226,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Aceptar y actualizar estado | Implementado y probado |
 | Historial automatico de estados | Implementado y probado |
 | Auditoria automatica | No implementada |
-| Resumen de pantalla principal | No implementado |
+| Resumen de pantalla principal | Implementado |
 | Rol asesor | No implementado |
 | Aislamiento de datos por empresa | Completo en los recursos del MVP |
 | Superficie de rutas del MVP | Completa; CRUD heredados retirados |
@@ -284,7 +284,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 1. Definir permisos y casos de uso del rol `asesor`.
 2. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
 3. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
-4. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
+4. Endpoint agregado para la pantalla principal implementado en `GET /api/v1/admin/resumen`.
 
 ## Roadmap de trabajo actualizado
 
@@ -296,7 +296,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 | 4 | Entregas MVP con cliente, cliente_dni y producto como campos | Completada y probada |
 | 5 | Asignacion, reasignacion y desasignacion de choferes | Completada y probada |
 | 6 | Estados canonicos e historial transaccional | Completada y probada |
-| 7 | Resumen para la pantalla principal | Pendiente |
+| 7 | Resumen para la pantalla principal | Completada |
 | 8 | Proteccion de todos los endpoints con Sanctum y roles | Completada |
 | 9 | Aislamiento de datos por empresa | Completada en recursos MVP |
 | 10 | Auditoria automatica mediante Observers | Pendiente |
@@ -340,7 +340,7 @@ Estas reglas tienen prioridad sobre los CRUD genericos. Cada endpoint nuevo debe
 
 1. Ejecutar la suite completa sobre SQLite con `pdo_sqlite` o una base MySQL exclusiva de pruebas.
 2. Validar desde React Native los contratos finales: `cliente_dni`, estados, errores y respuesta paginada.
-3. Definir si la pantalla principal usara varias solicitudes existentes o un endpoint agregado.
+3. La pantalla principal usa un endpoint agregado para el resumen.
 
 ### Prioridad posterior
 
@@ -366,7 +366,7 @@ Funciona y fue probado manualmente:
 Limitaciones actuales:
 
 - Los CRUD heredados fueron retirados de las rutas; sus clases permanecen sin exposicion HTTP por valor academico.
-- No existen recuperacion de contrasena, resumen principal ni auditoria automatica.
+- No existen recuperacion de contrasena ni auditoria automatica.
 - La suite con base no se puede ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; 21 pruebas sin base pasan, toda la sintaxis es valida y los archivos modificados pasan Pint.
 
 ## Plan ejecutado para el cierre del MVP: 1 de julio de 2026 al mediodia

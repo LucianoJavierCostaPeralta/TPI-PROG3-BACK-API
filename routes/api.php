@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\V1\Admin\ChoferController;
 use App\Http\Controllers\Api\V1\Admin\EntregaController as AdminEntregaController;
+use App\Http\Controllers\Api\V1\Admin\ResumenController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\RegistroController;
 use App\Http\Controllers\Api\V1\Chofer\EntregaController as ChoferEntregaController;
@@ -49,6 +50,7 @@ Route::prefix('v1')
                 Route::apiResource('users', UserController::class);
 
                 Route::prefix('admin')->group(function () {
+                    Route::get('resumen', [ResumenController::class, 'index']);
                     Route::apiResource('choferes', ChoferController::class)
                         ->parameters(['choferes' => 'chofer']);
                     Route::patch('choferes/{chofer}/password', [ChoferController::class, 'resetPassword']);
