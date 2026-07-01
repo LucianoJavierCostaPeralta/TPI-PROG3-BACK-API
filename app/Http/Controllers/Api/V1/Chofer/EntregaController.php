@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Chofer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Entrega;
+use App\Services\AuditoriaLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 /** @tags Chofer - Entregas */
 class EntregaController extends Controller
 {
+    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+
     /** Listar las entregas asignadas al chofer. */
     public function index(Request $request): JsonResponse
     {
@@ -69,6 +72,10 @@ class EntregaController extends Controller
                 'usuario_id' => $request->user()->id,
                 'fecha_cambio' => now(),
             ]);
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $entrega, 'entregas', 'entrega.accepted', [
+                'estado_anterior_id' => $estadoAnteriorId,
+                'estado_nuevo_id' => Entrega::ESTADO_ACCEPTED,
+            ]);
         });
 
         return response()->json([
@@ -117,6 +124,13 @@ class EntregaController extends Controller
                 'estado_nuevo_id' => $data['estado_id'],
                 'usuario_id' => $request->user()->id,
                 'fecha_cambio' => now(),
+            ]);
+            $accion = $data['estado_id'] === Entrega::ESTADO_ON_THE_WAY
+                ? 'entrega.on_the_way'
+                : 'entrega.delivered';
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $entrega, 'entregas', $accion, [
+                'estado_anterior_id' => $estadoAnteriorId,
+                'estado_nuevo_id' => $data['estado_id'],
             ]);
         });
 

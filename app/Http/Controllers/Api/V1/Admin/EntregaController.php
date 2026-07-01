@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Entrega;
 use App\Models\User;
+use App\Services\AuditoriaLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,11 +15,13 @@ use Illuminate\Validation\ValidationException;
 /** @tags Administracion - Entregas */
 class EntregaController extends Controller
 {
+    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+
     /** Listar, filtrar y paginar las entregas de la empresa. */
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'estado_id' => ['sometimes', 'integer', Rule::exists('estado_entregas', 'id')],
+            'estado_id' => ['sometimes', 'integer', Rule::exists('estados_entrega', 'id')],
             'chofer_id' => [
                 'sometimes',
                 'uuid',
@@ -68,16 +71,25 @@ class EntregaController extends Controller
             'referencia' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $entrega = Entrega::create([
-            'empresa_id' => $admin->empresa_id,
-            'cliente' => $data['cliente'],
-            'cliente_dni' => $data['cliente_dni'],
-            'producto' => $data['producto'],
-            'estado_id' => Entrega::ESTADO_PENDING,
-            'direccion_destino' => $data['direccion_destino'],
-            'orden_ruta' => $data['orden_ruta'] ?? null,
-            'referencia' => $data['referencia'] ?? null,
-        ]);
+        $entrega = DB::transaction(function () use ($admin, $data): Entrega {
+            $entrega = Entrega::create([
+                'empresa_id' => $admin->empresa_id,
+                'cliente' => $data['cliente'],
+                'cliente_dni' => $data['cliente_dni'],
+                'producto' => $data['producto'],
+                'estado_id' => Entrega::ESTADO_PENDING,
+                'direccion_destino' => $data['direccion_destino'],
+                'orden_ruta' => $data['orden_ruta'] ?? null,
+                'referencia' => $data['referencia'] ?? null,
+            ]);
+            $this->auditoria->record($admin->empresa_id, $admin, $entrega, 'entregas', 'entrega.created', [
+                'cliente' => $entrega->cliente,
+                'producto' => $entrega->producto,
+                'direccion_destino' => $entrega->direccion_destino,
+            ]);
+
+            return $entrega;
+        });
 
         return response()->json([
             'message' => 'Entrega creada correctamente.',
@@ -130,6 +142,7 @@ class EntregaController extends Controller
 
         $choferId = $data['chofer_id'] ?? null;
         $isUnassigning = $choferId === null;
+        $choferAnteriorId = $entrega->chofer_id;
 
         $estadoAnteriorId = $entrega->estado_id;
         $estadoNuevoId = $isUnassigning ? Entrega::ESTADO_PENDING : Entrega::ESTADO_ASSIGNED;
@@ -140,7 +153,8 @@ class EntregaController extends Controller
             $choferId,
             $isUnassigning,
             $estadoAnteriorId,
-            $estadoNuevoId
+            $estadoNuevoId,
+            $choferAnteriorId,
         ): void {
             $entrega->update([
                 'chofer_id' => $choferId,
@@ -156,6 +170,14 @@ class EntregaController extends Controller
                     'fecha_cambio' => now(),
                 ]);
             }
+
+            $accion = $isUnassigning
+                ? 'entrega.unassigned'
+                : ($choferAnteriorId === null ? 'entrega.assigned' : 'entrega.reassigned');
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $entrega, 'entregas', $accion, [
+                'chofer_anterior_id' => $choferAnteriorId,
+                'chofer_nuevo_id' => $choferId,
+            ]);
         });
 
         return response()->json([

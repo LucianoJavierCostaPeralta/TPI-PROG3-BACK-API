@@ -82,10 +82,10 @@ class AdminResumenTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.profile.id', $admin->id)
             ->assertJsonPath('data.company.id', $companyId)
-            ->assertJsonCount(2, 'data.drivers')
+            ->assertJsonCount(3, 'data.drivers')
             ->assertJsonCount(2, 'data.admins')
             ->assertJsonCount(2, 'data.orders')
-            ->assertJsonMissingPath('data.drivers.2')
+            ->assertJsonMissingPath('data.drivers.3')
             ->assertJsonMissingPath('data.admins.2')
             ->assertJsonMissingPath('data.orders.2');
 

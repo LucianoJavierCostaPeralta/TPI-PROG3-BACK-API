@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\V1\Admin\AuditoriaController;
 use App\Http\Controllers\Api\V1\Admin\ChoferController;
 use App\Http\Controllers\Api\V1\Admin\EntregaController as AdminEntregaController;
 use App\Http\Controllers\Api\V1\Admin\ResumenController;
@@ -54,6 +55,8 @@ Route::prefix('v1')
                 Route::apiResource('users', UserController::class);
 
                 Route::prefix('admin')->group(function () {
+                    Route::get('auditoria', [AuditoriaController::class, 'index']);
+                    Route::get('auditoria/{auditoria}', [AuditoriaController::class, 'show']);
                     Route::get('resumen', [ResumenController::class, 'index']);
                     Route::apiResource('choferes', ChoferController::class)
                         ->parameters(['choferes' => 'chofer']);

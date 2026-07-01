@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class AuditoriaLog extends Model
 {
@@ -16,16 +16,24 @@ class AuditoriaLog extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'empresa_id',
         'usuario_id',
         'tabla_afectada',
+        'recurso_id',
         'accion',
         'detalle_json',
         'fecha_evento',
     ];
 
     protected $casts = [
+        'detalle_json' => 'array',
         'fecha_evento' => 'datetime',
     ];
+
+    public function empresa(): BelongsTo
+    {
+        return $this->belongsTo(Empresa::class);
+    }
 
     public function usuario(): BelongsTo
     {

@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditoriaLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /** @tags Administracion - Choferes */
 class ChoferController extends Controller
 {
+    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+
     /** Listar los choferes de la empresa. */
     public function index(Request $request): JsonResponse
     {
@@ -39,17 +43,26 @@ class ChoferController extends Controller
             'activo' => ['sometimes', 'boolean'],
         ]);
 
-        $chofer = User::create([
-            'empresa_id' => $request->user()->empresa_id,
-            'rol_id' => User::ROL_CHOFER,
-            'nombre_completo' => $data['nombre_completo'],
-            'dni' => $data['dni'],
-            'fecha_nacimiento' => $data['fecha_nacimiento'],
-            'email' => $data['email'],
-            'telefono' => $data['telefono'] ?? null,
-            'password' => $data['password'],
-            'activo' => $data['activo'] ?? true,
-        ]);
+        $chofer = DB::transaction(function () use ($request, $data): User {
+            $chofer = User::create([
+                'empresa_id' => $request->user()->empresa_id,
+                'rol_id' => User::ROL_CHOFER,
+                'nombre_completo' => $data['nombre_completo'],
+                'dni' => $data['dni'],
+                'fecha_nacimiento' => $data['fecha_nacimiento'],
+                'email' => $data['email'],
+                'telefono' => $data['telefono'] ?? null,
+                'password' => $data['password'],
+                'activo' => $data['activo'] ?? true,
+            ]);
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $chofer, 'choferes', 'chofer.created', [
+                'nombre_completo' => $chofer->nombre_completo,
+                'email' => $chofer->email,
+                'activo' => $chofer->activo,
+            ]);
+
+            return $chofer;
+        });
 
         return response()->json([
             'message' => 'Chofer creado correctamente.',
@@ -93,7 +106,13 @@ class ChoferController extends Controller
             'activo' => ['sometimes', 'boolean'],
         ]);
 
-        $chofer->update($data);
+        DB::transaction(function () use ($request, $chofer, $data): void {
+            $chofer->update($data);
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $chofer, 'choferes', 'chofer.updated', [
+                'campos_modificados' => array_values(array_diff(array_keys($data), ['dni'])),
+                'dni_modificado' => array_key_exists('dni', $data),
+            ]);
+        });
 
         return response()->json([
             'message' => 'Chofer actualizado correctamente.',
@@ -110,9 +129,10 @@ class ChoferController extends Controller
             'password' => ['required', 'string', 'min:6'],
         ]);
 
-        $chofer->update([
-            'password' => $data['password'],
-        ]);
+        DB::transaction(function () use ($request, $chofer, $data): void {
+            $chofer->update(['password' => $data['password']]);
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $chofer, 'choferes', 'chofer.password_reset');
+        });
 
         return response()->json([
             'message' => 'Contrasena actualizada correctamente.',
@@ -124,7 +144,13 @@ class ChoferController extends Controller
     {
         $this->ensureChofer($request, $chofer);
 
-        $chofer->delete();
+        DB::transaction(function () use ($request, $chofer): void {
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $chofer, 'choferes', 'chofer.deleted', [
+                'nombre_completo' => $chofer->nombre_completo,
+                'email' => $chofer->email,
+            ]);
+            $chofer->delete();
+        });
 
         return response()->json([
             'message' => 'Chofer eliminado correctamente.',
