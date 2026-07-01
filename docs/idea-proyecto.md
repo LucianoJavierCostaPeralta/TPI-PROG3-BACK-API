@@ -4,7 +4,7 @@ API REST para gestionar envios asignados a choferes.
 
 ## Objetivo
 
-Crear un backend en Laravel para que usuarios administradores puedan crear choferes, crear envios y asignarlos. Los choferes deben poder iniciar sesion, ver sus envios asignados, aceptar pedidos y cambiar el state del envio hasta finished o delivered.
+Crear un backend en Laravel para que usuarios administradores puedan crear choferes, crear envios y asignarlos. Los choferes deben poder iniciar sesion, ver sus envios asignados, aceptar pedidos y cambiar el estado del envio hasta delivered.
 
 ## Usuarios
 
@@ -21,7 +21,7 @@ Crear un backend en Laravel para que usuarios administradores puedan crear chofe
 6. El chofer inicia sesion con email y password.
 7. El chofer ve sus envios asignados.
 8. El chofer acepta un envio.
-9. El chofer cambia el state a on_the_way, delivered o finished.
+9. El chofer cambia el estado a on_the_way y luego a delivered, validando el DNI del cliente.
 
 ## Autenticacion
 
@@ -109,5 +109,5 @@ Chofer:
 - accepted
 - on_the_way
 - delivered
-- finished
+- finished (reservado para cierre administrativo futuro)
 - cancelled

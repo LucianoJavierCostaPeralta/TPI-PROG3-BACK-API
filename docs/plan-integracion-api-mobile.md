@@ -22,7 +22,7 @@ Este documento centraliza el estado actual del backend Laravel, el contrato espe
 ### Administrador
 
 - Pertenece a una empresa.
-- Gestiona choferes, administradores, vehiculos, zonas y entregas de su empresa. Para el MVP, nombre y DNI del cliente, y producto se cargan directamente en la entrega.
+- Gestiona administradores, choferes y entregas de su empresa. Para el MVP, nombre y DNI del cliente, y producto se cargan directamente en la entrega.
 - Asigna y desasigna entregas a choferes de su empresa.
 - No puede consultar ni modificar informacion de otras empresas.
 
@@ -194,7 +194,7 @@ Estados usados por la aplicacion:
 - `en camino`
 - `realizado`
 
-Laravel utiliza identificadores numericos y los estados internos `pending`, `assigned`, `accepted`, `on_the_way`, `delivered`, `finished` y `cancelled`.
+Laravel utiliza identificadores numericos. Para el movil, `realizado` equivale a `delivered`: es el estado operativo final del chofer y exige DNI valido. `finished` permanece reservado para un eventual cierre administrativo y no puede seleccionarlo el chofer.
 
 ## Respuesta principal esperada por React Native
 
@@ -229,7 +229,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Resumen de pantalla principal | No implementado |
 | Rol asesor | No implementado |
 | Aislamiento de datos por empresa | Completo en los recursos del MVP |
-| Proteccion global con Sanctum | Completa; CRUD heredados restringidos a administradores |
+| Superficie de rutas del MVP | Completa; CRUD heredados retirados |
 
 ## Requisitos academicos y estado real
 
@@ -263,11 +263,11 @@ La API responde JSON y el frontend se encuentra separado. Todavia existe la ruta
 
 ### Autenticacion y autorizacion
 
-Sanctum, el middleware de roles y las rutas especificas de administrador y chofer estan implementados. Los CRUD generales requieren token Sanctum y rol administrador.
+Sanctum, el middleware de roles y las rutas especificas de administrador y chofer estan implementados. Los CRUD generales heredados fueron retirados de las rutas.
 
 ## Aislamiento por empresa
 
-Los recursos activos del MVP derivan la empresa del usuario autenticado. Empresas, administradores, choferes y entregas rechazan accesos cruzados. Los servicios heredados que conservan consultas globales no estan expuestos sin autenticacion y rol administrador; su refactor interno queda fuera del cierre obligatorio.
+Los recursos activos del MVP derivan la empresa del usuario autenticado. Empresas, administradores, choferes y entregas rechazan accesos cruzados. Los controladores y servicios heredados pueden permanecer en el repositorio por valor academico, pero ya no tienen rutas publicadas.
 
 ## Convencion recomendada para la API
 
@@ -281,11 +281,10 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 
 ## Decisiones pendientes
 
-1. Definir si `realizado` equivale a `delivered` o a `finished`.
-2. Definir permisos y casos de uso del rol `asesor`.
-3. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
-4. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
-5. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
+1. Definir permisos y casos de uso del rol `asesor`.
+2. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
+3. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
+4. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
 
 ## Roadmap de trabajo actualizado
 
@@ -339,21 +338,16 @@ Estas reglas tienen prioridad sobre los CRUD genericos. Cada endpoint nuevo debe
 
 ### Prioridad inmediata
 
-1. Agregar filtros y paginacion a `GET /api/v1/admin/entregas`:
-   - `estado_id`.
-   - `chofer_id`.
-   - entregas sin chofer.
-   - paginacion conservando el alcance por empresa.
-2. Proteger o retirar los CRUD genericos que todavia estan fuera de los grupos Sanctum.
-3. Completar el aislamiento por empresa en los servicios genericos.
+1. Ejecutar la suite completa sobre SQLite con `pdo_sqlite` o una base MySQL exclusiva de pruebas.
+2. Validar desde React Native los contratos finales: `cliente_dni`, estados, errores y respuesta paginada.
+3. Definir si la pantalla principal usara varias solicitudes existentes o un endpoint agregado.
 
 ### Prioridad posterior
 
-1. Implementar recuperacion y cambio de contrasena.
-2. Definir e implementar el resumen de la pantalla principal.
-3. Automatizar auditoria con Observers.
-4. Incorporar Form Requests y API Resources.
-5. Definir el rol asesor y el significado final de `realizado`.
+1. Automatizar auditoria con Observers si sigue siendo requisito academico.
+2. Definir el rol asesor.
+3. Incorporar Form Requests y API Resources de manera incremental.
+4. Implementar recuperacion y cambio de contrasena como ultima tarea.
 
 ## Estado al cierre del 1 de julio de 2026
 
@@ -364,14 +358,14 @@ Funciona y fue probado manualmente:
 - Alta de entrega MVP con `cliente`, `cliente_dni`, `producto`, `direccion_destino` y `referencia` opcional.
 - Empresa obtenida del administrador autenticado y estado inicial `pending`.
 - Asignacion, reasignacion y desasignacion de choferes de la misma empresa.
-- Aceptacion y avance secuencial `assigned -> accepted -> on_the_way -> delivered -> finished`.
+- Aceptacion y avance secuencial `assigned -> accepted -> on_the_way -> delivered` con DNI valido.
 - Historial atomico para asignacion, desasignacion, aceptacion y cambios posteriores.
 - Detalle de entrega con estado, usuario e historial de transiciones.
 - Catalogo canonico de estados garantizado mediante migracion.
 
 Limitaciones actuales:
 
-- Los CRUD heredados estan protegidos para administradores; sus servicios internos aun conservan deuda de refactor fuera del alcance MVP.
+- Los CRUD heredados fueron retirados de las rutas; sus clases permanecen sin exposicion HTTP por valor academico.
 - No existen recuperacion de contrasena, resumen principal ni auditoria automatica.
 - La suite con base no se puede ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; 21 pruebas sin base pasan, toda la sintaxis es valida y los archivos modificados pasan Pint.
 
@@ -437,7 +431,7 @@ No volver a agregar `fecha_programada`, `cantidad`, `latitud` ni `longitud` a la
 
 Los cinco frentes obligatorios quedaron ejecutados:
 
-1. Todos los CRUD heredados bajo `/api/v1` requieren `auth:sanctum` y rol `admin`. Salud, login y registro permanecen publicos.
+1. Los CRUD heredados fueron retirados. Las 28 rutas restantes corresponden al MVP; salud, login y registro son publicos y el resto requiere Sanctum.
 2. Empresa, administradores, choferes y entregas se consultan y modifican con alcance de la empresa autenticada. Los IDs pertenecientes a otra empresa devuelven `404`; la asignacion de un chofer ajeno devuelve `422`.
 3. `GET /api/v1/admin/entregas` pagina 15 registros por defecto y acepta:
    - `estado_id`: ID valido del catalogo de estados;
@@ -447,8 +441,8 @@ Los cinco frentes obligatorios quedaron ejecutados:
    La respuesta paginada se encuentra en `data` y sus registros en `data.data`. `chofer_id` y `sin_chofer=1` no se pueden combinar.
 4. La validacion final obtuvo los siguientes resultados:
    - sintaxis valida en todos los archivos PHP de `app`, `routes`, `database` y `tests`;
-   - 100 rutas API registradas correctamente;
-   - 56 pruebas descubiertas: 21 sin base de datos pasan y 35 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
+   - 28 rutas API registradas correctamente;
+   - 59 pruebas descubiertas: 24 sin base de datos pasan y 35 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
    - Pint pasa en todos los archivos modificados. La ejecucion global detecta deuda de formato preexistente en modelos, servicios y migraciones heredados, fuera del alcance funcional del cierre;
    - la secuencia manual reproducible quedo documentada en `docs/pruebas-manuales-insomnia-mvp.md`.
 5. El cierre conserva el contrato MVP: `cliente`, `cliente_dni` y `producto` son campos directos de `Entrega`; no se incorporaron `fecha_programada`, `cantidad`, `latitud` ni `longitud`.

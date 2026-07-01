@@ -76,7 +76,7 @@ class ChoferEntregaTest extends TestCase
         ]);
     }
 
-    public function test_chofer_can_complete_entrega_cycle(): void
+    public function test_chofer_can_complete_operational_cycle_at_delivered(): void
     {
         $chofer = User::where('email', 'chofer@logistica.com')->first();
         Sanctum::actingAs($chofer);
@@ -102,8 +102,9 @@ class ChoferEntregaTest extends TestCase
         $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/state", [
             'estado_id' => Entrega::ESTADO_FINISHED,
         ])
-            ->assertOk()
-            ->assertJsonPath('data.estado_id', Entrega::ESTADO_FINISHED);
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('estado_id');
+        $this->assertSame(Entrega::ESTADO_DELIVERED, $entrega->fresh()->estado_id);
         $this->assertDatabaseHas('historial_estados_entrega', [
             'entrega_id' => $entrega->id,
             'estado_anterior_id' => Entrega::ESTADO_ACCEPTED,
@@ -116,13 +117,7 @@ class ChoferEntregaTest extends TestCase
             'estado_nuevo_id' => Entrega::ESTADO_DELIVERED,
             'usuario_id' => $chofer->id,
         ]);
-        $this->assertDatabaseHas('historial_estados_entrega', [
-            'entrega_id' => $entrega->id,
-            'estado_anterior_id' => Entrega::ESTADO_DELIVERED,
-            'estado_nuevo_id' => Entrega::ESTADO_FINISHED,
-            'usuario_id' => $chofer->id,
-        ]);
-        $this->assertDatabaseCount('historial_estados_entrega', 3);
+        $this->assertDatabaseCount('historial_estados_entrega', 2);
     }
 
     public function test_chofer_cannot_update_entrega_from_another_chofer(): void

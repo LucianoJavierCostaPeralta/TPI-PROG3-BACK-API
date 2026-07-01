@@ -131,7 +131,6 @@ class EntregaController extends Controller
         return match ($currentEstadoId) {
             Entrega::ESTADO_ACCEPTED => $nextEstadoId === Entrega::ESTADO_ON_THE_WAY,
             Entrega::ESTADO_ON_THE_WAY => $nextEstadoId === Entrega::ESTADO_DELIVERED,
-            Entrega::ESTADO_DELIVERED => $nextEstadoId === Entrega::ESTADO_FINISHED,
             default => false,
         };
     }

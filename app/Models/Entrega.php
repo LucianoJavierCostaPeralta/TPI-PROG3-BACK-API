@@ -30,7 +30,6 @@ class Entrega extends Model
     public const DRIVER_ESTADOS = [
         self::ESTADO_ON_THE_WAY,
         self::ESTADO_DELIVERED,
-        self::ESTADO_FINISHED,
     ];
 
     public $incrementing = false;
