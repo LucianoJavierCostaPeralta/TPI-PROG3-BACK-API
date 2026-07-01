@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Empresa;
-use App\Models\User;
-use App\Models\ClienteDestinatario;
-use App\Models\Producto;
-use App\Models\Entrega;
-use App\Models\DetalleEntrega;
-use App\Models\Vehiculo;
 use App\Models\AsignacionVehiculo;
+use App\Models\ClienteDestinatario;
+use App\Models\DetalleEntrega;
+use App\Models\Empresa;
+use App\Models\Entrega;
+use App\Models\Producto;
+use App\Models\User;
+use App\Models\Vehiculo;
 use App\Models\ZonaCobertura;
-use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
 {
@@ -36,7 +36,7 @@ class DemoDataSeeder extends Seeder
                 'empresa_id' => $empresa->id,
                 'tipo_id' => 2, // Furgoneta
                 'marca_modelo' => 'Renault Kangoo',
-                'estado_operativo' => true
+                'estado_operativo' => true,
             ]
         );
 
@@ -58,7 +58,7 @@ class DemoDataSeeder extends Seeder
                 'nombre_completo' => 'María González',
                 'direccion_frecuente' => 'Av. Siempre Viva 742',
                 'latitud_frecuente' => -34.6037,
-                'longitud_frecuente' => -58.3816
+                'longitud_frecuente' => -58.3816,
             ]
         );
 
@@ -69,7 +69,7 @@ class DemoDataSeeder extends Seeder
                 'id' => Str::uuid(),
                 'empresa_id' => $empresa->id,
                 'peso_kg' => 2.5,
-                'stock_disponible' => 100
+                'stock_disponible' => 100,
             ]
         );
 
@@ -81,11 +81,9 @@ class DemoDataSeeder extends Seeder
             'cliente_id' => $cliente->id,
             'estado_id' => 1, // pending
             'direccion_destino' => 'Av. Siempre Viva 742',
-            'latitud' => -34.6037,
-            'longitud' => -58.3816,
             'orden_ruta' => 1,
             'referencia' => 'Tocar timbre 2B',
-            'fecha_asignacion' => now()
+            'fecha_asignacion' => now(),
         ]);
 
         // 7. Crear el Detalle (Intermedia)
@@ -93,7 +91,7 @@ class DemoDataSeeder extends Seeder
             'id' => Str::uuid(),
             'entrega_id' => $entrega->id,
             'producto_id' => $producto->id,
-            'cantidad' => 1
+            'cantidad' => 1,
         ]);
     }
 }

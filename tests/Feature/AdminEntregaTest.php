@@ -26,23 +26,23 @@ class AdminEntregaTest extends TestCase
         $admin = User::where('email', 'admin@admin.com')->first();
         Sanctum::actingAs($admin);
 
-        $cliente = ClienteDestinatario::factory()->create([
-            'empresa_id' => $admin->empresa_id,
-        ]);
-
         $response = $this->postJson('/api/v1/admin/entregas', [
-            'cliente_id' => $cliente->id,
+            'cliente' => 'Comercio Centro',
+            'producto' => 'Caja mediana',
             'direccion_destino' => 'Calle 321',
             'referencia' => 'Paquetes medianos',
         ]);
 
         $response
             ->assertCreated()
+            ->assertJsonPath('data.cliente', 'Comercio Centro')
+            ->assertJsonPath('data.producto', 'Caja mediana')
             ->assertJsonPath('data.direccion_destino', 'Calle 321')
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_PENDING);
 
         $this->assertDatabaseHas('entregas', [
-            'cliente_id' => $cliente->id,
+            'cliente' => 'Comercio Centro',
+            'producto' => 'Caja mediana',
             'direccion_destino' => 'Calle 321',
             'estado_id' => Entrega::ESTADO_PENDING,
         ]);

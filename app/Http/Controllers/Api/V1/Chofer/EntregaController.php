@@ -15,7 +15,6 @@ class EntregaController extends Controller
         $entregas = Entrega::query()
             ->where('chofer_id', $request->user()->id)
             ->with([
-                'cliente:id,nombre_completo,telefono,direccion_frecuente',
                 'estado:id,nombre_estado',
             ])
             ->latest()
@@ -32,7 +31,6 @@ class EntregaController extends Controller
 
         return response()->json([
             'data' => $entrega->load([
-                'cliente:id,nombre_completo,telefono,direccion_frecuente',
                 'estado:id,nombre_estado',
             ]),
         ]);

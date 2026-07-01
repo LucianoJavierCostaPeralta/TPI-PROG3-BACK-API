@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 
 class Entrega extends Model
@@ -41,10 +41,10 @@ class Entrega extends Model
         'empresa_id',
         'chofer_id',
         'cliente_id',
+        'cliente',
+        'producto',
         'estado_id',
         'direccion_destino',
-        'latitud',
-        'longitud',
         'orden_ruta',
         'referencia',
         'fecha_asignacion',
@@ -73,7 +73,7 @@ class Entrega extends Model
         return $this->belongsTo(User::class, 'chofer_id');
     }
 
-    public function cliente(): BelongsTo
+    public function legacyCliente(): BelongsTo
     {
         return $this->belongsTo(ClienteDestinatario::class, 'cliente_id');
     }

@@ -9,8 +9,8 @@ Este documento centraliza el estado actual del backend Laravel, el contrato espe
 1. Una empresa completa el formulario de registro.
 2. El sistema crea la empresa y su usuario administrador en una misma transaccion.
 3. El administrador inicia sesion y gestiona exclusivamente los datos de su empresa.
-4. El administrador crea choferes, clientes, productos y entregas.
-5. Una entrega se crea junto con sus productos y cantidades en una transaccion maestro-detalle.
+4. El administrador crea choferes y entregas.
+5. Para el MVP, cada entrega almacena un unico cliente y un unico producto como campos de texto.
 6. El administrador asigna o desasigna una entrega a un chofer de su empresa.
 7. El chofer consulta solamente sus entregas asignadas.
 8. El chofer acepta una entrega y actualiza su estado.
@@ -22,7 +22,7 @@ Este documento centraliza el estado actual del backend Laravel, el contrato espe
 ### Administrador
 
 - Pertenece a una empresa.
-- Gestiona choferes, administradores, clientes, productos, vehiculos, zonas y entregas de su empresa.
+- Gestiona choferes, administradores, vehiculos, zonas y entregas de su empresa. Para el MVP, cliente y producto se cargan directamente en la entrega.
 - Asigna y desasigna entregas a choferes de su empresa.
 - No puede consultar ni modificar informacion de otras empresas.
 
@@ -138,15 +138,13 @@ Laravel ahora espera `nombre_completo`, `dni`, `fecha_nacimiento` y una `passwor
 ```json
 {
   "cliente": "Comercio Centro",
-  "destino": "Av. Colon 1234",
-  "referencia": "PED-001",
-  "observaciones": "Entregar por recepcion",
-  "fecha": "2026-06-30",
-  "productos": "2 cajas y 1 paquete"
+  "producto": "Caja de documentos",
+  "direccion_destino": "Av. Colon 1234",
+  "referencia": "Entregar por recepcion"
 }
 ```
 
-Laravel actualmente requiere `cliente_id` y `direccion_destino`. El esquema no contiene `fecha_programada` ni `observaciones`, y los detalles de productos se crean mediante un endpoint separado.
+Este es el contrato MVP implementado y probado. `cliente` y `producto` son campos de texto de la entrega; no requieren UUID ni recursos separados. La empresa se obtiene del administrador autenticado, el estado inicial es `pending` y `referencia` es opcional. El alta no utiliza `cantidad`, `latitud` ni `longitud`.
 
 ### Asignar o desasignar chofer
 
@@ -208,7 +206,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Registro de empresa y administrador | Implementado |
 | Recuperacion y cambio de contrasena | No implementado |
 | Crear chofer | Contrato incompatible |
-| Crear entrega con productos | Contrato incompatible |
+| Crear entrega con cliente y producto | Implementado y probado para el MVP |
 | Asignar chofer | Parcial |
 | Desasignar chofer | No implementado |
 | Actualizar estado | Contrato incompatible |
@@ -225,7 +223,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 
 Cumplido mediante:
 
-- `detalles_entrega`: entregas con productos.
+- `detalles_entrega`: relacion historica entre entregas y productos; permanece en el esquema, pero no participa del flujo MVP.
 - `asignaciones_vehiculos`: usuarios choferes con vehiculos.
 - `chofer_zonas`: usuarios choferes con zonas de cobertura.
 
@@ -235,7 +233,7 @@ Cumplido. El esquema contiene mas de diez relaciones mediante claves foraneas.
 
 ### Maestro-detalle y transacciones
 
-El esquema maestro-detalle existe, pero no hay ningun `DB::transaction()` en el codigo de aplicacion. La creacion atomica de entrega y detalles sigue pendiente.
+El esquema maestro-detalle historico permanece disponible. La regla del MVP lo reemplaza en el flujo activo: una entrega guarda un unico `cliente` y un unico `producto` como texto, por lo que el alta se resuelve con una sola insercion y no requiere una transaccion maestro-detalle.
 
 ### Historial de estados
 
@@ -280,7 +278,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 3. Definir si `fleetSize` se persiste o se utiliza solo durante el registro.
 4. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
 5. Definir si el registro devuelve inmediatamente un token Sanctum.
-6. Definir el contrato definitivo de creacion de productos dentro de una entrega.
+6. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
 7. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
 
 ## Roadmap recomendado por commits
@@ -288,7 +286,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 1. `feat: implementar registro de empresa y administrador`
 2. `feat: agregar recuperacion y cambio de contrasena`
 3. `feat: adaptar gestion de choferes al contrato movil`
-4. `feat: crear entregas con cliente y productos en una transaccion`
+4. `feat: crear entregas MVP con cliente y producto como campos`
 5. `feat: implementar asignacion y desasignacion de choferes`
 6. `feat: normalizar estados e historial de entregas`
 7. `feat: agregar endpoint de resumen principal`
@@ -322,7 +320,7 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 | 1 | Una empresa se registra junto con su administrador. | Implementado |
 | 2 | El administrador solo gestiona datos de su empresa. | Incompleto |
 | 3 | El administrador crea choferes y entregas. | Parcialmente implementado |
-| 4 | Una entrega se crea con sus productos en una transaccion. | Pendiente |
+| 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
 | 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Pendiente |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
 | 7 | Cada cambio de estado crea un historial en la misma transaccion. | Pendiente |

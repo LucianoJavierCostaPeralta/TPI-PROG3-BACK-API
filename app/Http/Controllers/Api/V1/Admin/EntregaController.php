@@ -14,17 +14,16 @@ class EntregaController extends Controller
     public function index(Request $request): JsonResponse
     {
         $entregas = Entrega::query()
-            ->where("empresa_id", $request->user()->empresa_id)
+            ->where('empresa_id', $request->user()->empresa_id)
             ->with([
-                "chofer:id,nombre_completo,email,telefono,rol_id",
-                "cliente:id,nombre_completo,telefono",
-                "estado:id,nombre_estado",
+                'chofer:id,nombre_completo,email,telefono,rol_id',
+                'estado:id,nombre_estado',
             ])
             ->latest()
             ->get();
 
         return response()->json([
-            "data" => $entregas,
+            'data' => $entregas,
         ]);
     }
 
@@ -33,37 +32,28 @@ class EntregaController extends Controller
         $admin = $request->user();
 
         $data = $request->validate([
-            "cliente_id" => [
-                "required",
-                "uuid",
-                Rule::exists("clientes_destinatarios", "id")->where(
-                    fn ($query) => $query->where("empresa_id", $admin->empresa_id)
-                ),
-            ],
-            "direccion_destino" => ["required", "string", "min:3", "max:255"],
-            "latitud" => ["nullable", "numeric", "between:-90,90"],
-            "longitud" => ["nullable", "numeric", "between:-180,180"],
-            "orden_ruta" => ["nullable", "integer", "min:1"],
-            "referencia" => ["nullable", "string", "max:500"],
+            'cliente' => ['required', 'string', 'min:2', 'max:150'],
+            'producto' => ['required', 'string', 'min:2', 'max:150'],
+            'direccion_destino' => ['required', 'string', 'min:3', 'max:255'],
+            'orden_ruta' => ['nullable', 'integer', 'min:1'],
+            'referencia' => ['nullable', 'string', 'max:500'],
         ]);
 
         $entrega = Entrega::create([
-            "empresa_id" => $admin->empresa_id,
-            "cliente_id" => $data["cliente_id"],
-            "estado_id" => Entrega::ESTADO_PENDING,
-            "direccion_destino" => $data["direccion_destino"],
-            "latitud" => $data["latitud"] ?? null,
-            "longitud" => $data["longitud"] ?? null,
-            "orden_ruta" => $data["orden_ruta"] ?? null,
-            "referencia" => $data["referencia"] ?? null,
+            'empresa_id' => $admin->empresa_id,
+            'cliente' => $data['cliente'],
+            'producto' => $data['producto'],
+            'estado_id' => Entrega::ESTADO_PENDING,
+            'direccion_destino' => $data['direccion_destino'],
+            'orden_ruta' => $data['orden_ruta'] ?? null,
+            'referencia' => $data['referencia'] ?? null,
         ]);
 
         return response()->json([
-            "message" => "Entrega creada correctamente.",
-            "data" => $entrega->load([
-                "chofer:id,nombre_completo,email,telefono,rol_id",
-                "cliente:id,nombre_completo,telefono",
-                "estado:id,nombre_estado",
+            'message' => 'Entrega creada correctamente.',
+            'data' => $entrega->load([
+                'chofer:id,nombre_completo,email,telefono,rol_id',
+                'estado:id,nombre_estado',
             ]),
         ], 201);
     }
@@ -73,10 +63,9 @@ class EntregaController extends Controller
         $this->ensureEntregaBelongsToEmpresa($request, $entrega);
 
         return response()->json([
-            "data" => $entrega->load([
-                "chofer:id,nombre_completo,email,telefono,rol_id",
-                "cliente:id,nombre_completo,telefono,direccion_frecuente",
-                "estado:id,nombre_estado",
+            'data' => $entrega->load([
+                'chofer:id,nombre_completo,email,telefono,rol_id',
+                'estado:id,nombre_estado',
             ]),
         ]);
     }
@@ -86,41 +75,40 @@ class EntregaController extends Controller
         $this->ensureEntregaBelongsToEmpresa($request, $entrega);
 
         $data = $request->validate([
-            "chofer_id" => [
-                "required",
-                "uuid",
-                Rule::exists("users", "id")->where(function ($query) use ($request) {
+            'chofer_id' => [
+                'required',
+                'uuid',
+                Rule::exists('users', 'id')->where(function ($query) use ($request) {
                     $query
-                        ->where("rol_id", User::ROL_CHOFER)
-                        ->where("empresa_id", $request->user()->empresa_id);
+                        ->where('rol_id', User::ROL_CHOFER)
+                        ->where('empresa_id', $request->user()->empresa_id);
                 }),
             ],
         ]);
 
         if (! in_array($entrega->estado_id, [Entrega::ESTADO_PENDING, Entrega::ESTADO_ASSIGNED], true)) {
             return response()->json([
-                "message" => "Solo se pueden asignar entregas pendientes o asignadas.",
+                'message' => 'Solo se pueden asignar entregas pendientes o asignadas.',
             ], 422);
         }
 
         $entrega->update([
-            "chofer_id" => $data["chofer_id"],
-            "estado_id" => Entrega::ESTADO_ASSIGNED,
-            "fecha_asignacion" => now(),
+            'chofer_id' => $data['chofer_id'],
+            'estado_id' => Entrega::ESTADO_ASSIGNED,
+            'fecha_asignacion' => now(),
         ]);
 
         return response()->json([
-            "message" => "Entrega asignada correctamente.",
-            "data" => $entrega->load([
-                "chofer:id,nombre_completo,email,telefono,rol_id",
-                "cliente:id,nombre_completo,telefono",
-                "estado:id,nombre_estado",
+            'message' => 'Entrega asignada correctamente.',
+            'data' => $entrega->load([
+                'chofer:id,nombre_completo,email,telefono,rol_id',
+                'estado:id,nombre_estado',
             ]),
         ]);
     }
 
     private function ensureEntregaBelongsToEmpresa(Request $request, Entrega $entrega): void
     {
-        abort_if($entrega->empresa_id !== $request->user()->empresa_id, 404, "Entrega no encontrada.");
+        abort_if($entrega->empresa_id !== $request->user()->empresa_id, 404, 'Entrega no encontrada.');
     }
 }
