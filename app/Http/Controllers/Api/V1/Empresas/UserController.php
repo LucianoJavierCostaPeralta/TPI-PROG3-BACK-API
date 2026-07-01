@@ -16,6 +16,7 @@ class UserController extends Controller
     {
         $users = User::query()
             ->where('empresa_id', $request->user()->empresa_id)
+            ->where('rol_id', User::ROL_ADMIN)
             ->with('rol')
             ->orderBy('nombre_completo')
             ->get();

@@ -23,6 +23,9 @@ Route::post('v1/login', [AuthController::class, 'login'])
 Route::post('v1/registro', RegistroController::class)
     ->middleware('throttle:5,1')
     ->name('registro');
+Route::post('v1/recuperar-password', [AuthController::class, 'recoverPassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.recover');
 
 // ==========================================
 // RUTAS PROTEGIDAS (Sanctum)
@@ -31,6 +34,7 @@ Route::prefix('v1')
     ->middleware('auth:sanctum')
     ->group(function () {
         Route::get('profile', [AuthController::class, 'profile']);
+        Route::patch('profile/password', [AuthController::class, 'updatePassword']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('estados-entrega', [EstadoEntregaController::class, 'index']);
 

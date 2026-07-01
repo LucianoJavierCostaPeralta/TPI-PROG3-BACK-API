@@ -32,6 +32,7 @@ class EmpresaIsolationTest extends TestCase
 
         $this->getJson('/api/v1/users')
             ->assertOk()
+            ->assertJsonMissing(['rol_id' => User::ROL_CHOFER])
             ->assertJsonMissing(['empresa_id' => Empresa::whereKeyNot($admin->empresa_id)->firstOrFail()->id]);
     }
 

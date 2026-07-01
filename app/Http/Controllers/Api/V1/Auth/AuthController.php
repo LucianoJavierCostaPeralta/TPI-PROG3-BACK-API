@@ -53,6 +53,48 @@ class AuthController extends Controller
         ]);
     }
 
+    /** Restablecer la contrasena de un chofer a su DNI. */
+    public function recoverPassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = User::query()
+            ->where('email', $data['email'])
+            ->where('rol_id', User::ROL_CHOFER)
+            ->whereNotNull('dni')
+            ->first();
+
+        if ($user) {
+            $user->update([
+                'password' => $user->dni,
+            ]);
+            $user->tokens()->delete();
+        }
+
+        return response()->json([
+            'message' => 'Si el correo pertenece a un chofer registrado, la contrasena fue restablecida.',
+        ]);
+    }
+
+    /** Cambiar la contrasena del usuario autenticado. */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'string', 'current_password'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $request->user()->update([
+            'password' => $data['password'],
+        ]);
+
+        return response()->json([
+            'message' => 'Contrasena actualizada correctamente.',
+        ]);
+    }
+
     /** Cerrar la sesion actual. */
     public function logout(Request $request): JsonResponse
     {

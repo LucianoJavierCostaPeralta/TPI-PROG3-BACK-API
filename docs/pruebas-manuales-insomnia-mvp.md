@@ -139,3 +139,35 @@ Todos los cambios deben responder `200`. Un salto no secuencial debe responder `
 ## Restricciones del contrato MVP
 
 No enviar `fecha_programada`, `cantidad`, `latitud` ni `longitud`. `cliente`, `cliente_dni` y `producto` son campos directos de la entrega. El chofer no recibe el DNI esperado y debe ingresarlo para marcarla como entregada.
+
+## Recuperacion y cambio de contrasena
+
+### Recuperar la contrasena del chofer
+
+`POST {{ base_url }}/api/v1/recuperar-password`
+
+```json
+{
+  "email": "chofer.insomnia@example.com"
+}
+```
+
+Resultado esperado: `200` con una respuesta generica. Si el correo pertenece a un chofer con DNI, la contrasena pasa a ser su DNI y se revocan sus tokens activos. Los administradores no se modifican.
+
+El chofer debe iniciar sesion nuevamente usando su DNI como contrasena.
+
+### Cambiar la contrasena desde Perfil
+
+Usar un token autenticado:
+
+`PATCH {{ base_url }}/api/v1/profile/password`
+
+```json
+{
+  "current_password": "12345678",
+  "password": "nueva123",
+  "password_confirmation": "nueva123"
+}
+```
+
+Resultado esperado: `200`. Una contrasena actual incorrecta o una confirmacion diferente responde `422`. El cambio posterior al recupero es opcional.

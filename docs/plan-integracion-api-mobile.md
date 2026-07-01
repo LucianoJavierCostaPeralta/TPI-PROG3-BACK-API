@@ -44,8 +44,7 @@ Deberian permanecer publicos solamente:
 - `GET /api/health`
 - `POST /api/v1/login`
 - `POST /api/v1/registro`
-- Solicitud de recuperacion de contrasena.
-- Confirmacion de nueva contrasena mediante token.
+- `POST /api/v1/recuperar-password`.
 
 El resto de los endpoints debe requerir un token Sanctum y el rol correspondiente.
 
@@ -103,20 +102,22 @@ Contrato canonico de la API:
 
 ```json
 {
-  "email": "admin@empresa.com"
+  "email": "chofer@empresa.com"
 }
 ```
+`POST /api/v1/recuperar-password` restablece la contrasena del chofer a su DNI y revoca sus tokens.
 
 ### Cambiar contrasena
 
 ```json
 {
+  "current_password": "12345678",
   "password": "nueva123",
   "password_confirmation": "nueva123"
 }
 ```
 
-Este flujo no esta implementado. El frontend tampoco contempla todavia el token de recuperacion.
+`PATCH /api/v1/profile/password` requiere autenticacion. El cambio posterior al recupero es opcional y no se fuerza en el login.
 
 ### Crear chofer
 
@@ -218,7 +219,7 @@ El endpoint agregado existe en `GET /api/v1/admin/resumen` y devuelve el usuario
 | --- | --- |
 | Login | Compatible |
 | Registro de empresa y administrador | Implementado |
-| Recuperacion y cambio de contrasena | No implementado |
+| Recuperacion al DNI y cambio desde Perfil | Implementado |
 | Crear y gestionar choferes | Implementado |
 | Crear entrega con nombre y DNI del cliente, y producto | Implementado y probado para el MVP |
 | Asignar o reasignar chofer | Implementado |
@@ -291,7 +292,7 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 | Numero | Tarea | Estado |
 | --- | --- | --- |
 | 1 | Registro de empresa y administrador | Completada |
-| 2 | Recuperacion y cambio de contrasena | Pendiente |
+| 2 | Recuperacion al DNI y cambio desde Perfil | Completada |
 | 3 | Gestion de choferes adaptada al contrato movil | Completada |
 | 4 | Entregas MVP con cliente, cliente_dni y producto como campos | Completada y probada |
 | 5 | Asignacion, reasignacion y desasignacion de choferes | Completada y probada |
@@ -347,7 +348,7 @@ Estas reglas tienen prioridad sobre los CRUD genericos. Cada endpoint nuevo debe
 1. Automatizar auditoria con Observers si sigue siendo requisito academico.
 2. Definir el rol asesor.
 3. Incorporar Form Requests y API Resources de manera incremental.
-4. Implementar recuperacion y cambio de contrasena como ultima tarea.
+4. Recuperacion al DNI y cambio desde Perfil implementados.
 
 ## Estado al cierre del 1 de julio de 2026
 
@@ -366,7 +367,7 @@ Funciona y fue probado manualmente:
 Limitaciones actuales:
 
 - Los CRUD heredados fueron retirados de las rutas; sus clases permanecen sin exposicion HTTP por valor academico.
-- No existen recuperacion de contrasena ni auditoria automatica.
+- La recuperacion simplificada no envia correo: restablece la contrasena del chofer a su DNI; la auditoria automatica sigue pendiente.
 - La suite con base no se puede ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; 21 pruebas sin base pasan, toda la sintaxis es valida y los archivos modificados pasan Pint.
 
 ## Plan ejecutado para el cierre del MVP: 1 de julio de 2026 al mediodia
@@ -395,7 +396,6 @@ El objetivo fue entregar un MVP funcional y defendible. Los cinco frentes se eje
 Solo si queda margen despues de cerrar esos cinco frentes:
 
 - resumen de pantalla principal;
-- recuperacion de contrasena;
 - auditoria automatica.
 
 Fuera del alcance obligatorio de esta entrega:
