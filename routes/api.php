@@ -47,10 +47,10 @@ Route::post('v1/registro', RegistroController::class)
 // API V1
 // ==========================================
 Route::prefix('v1')
+    ->middleware(['auth:sanctum', 'role:admin'])
     ->group(function () {
         Route::apiResource('empresas', EmpresaController::class)
-            ->except(['store'])
-            ->middleware(['auth:sanctum', 'role:admin']);
+            ->except(['store']);
         Route::apiResource('clientes-destinatarios', ClienteDestinatarioController::class)
             ->parameters(['clientes-destinatarios' => 'cliente_destinatario']);
         Route::apiResource('productos', ProductoController::class);
