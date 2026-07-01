@@ -170,9 +170,11 @@ Implementado y probado en el contrato: un UUID asigna o reasigna un chofer de la
 
 ```json
 {
-  "estado": "en camino"
+  "estado_id": 4
 }
 ```
+
+El chofer usa `PATCH /api/v1/chofer/entregas/{entrega}/state`. Las transiciones permitidas son secuenciales y cada cambio se registra de forma atomica en el historial.
 
 Estados usados por la aplicacion:
 
@@ -205,11 +207,11 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Login | Compatible |
 | Registro de empresa y administrador | Implementado |
 | Recuperacion y cambio de contrasena | No implementado |
-| Crear chofer | Contrato incompatible |
+| Crear y gestionar choferes | Implementado |
 | Crear entrega con cliente y producto | Implementado y probado para el MVP |
 | Asignar o reasignar chofer | Implementado |
 | Desasignar chofer | Implementado |
-| Actualizar estado | Contrato incompatible |
+| Aceptar y actualizar estado | Implementado y probado |
 | Historial automatico de estados | Implementado y probado |
 | Auditoria automatica | No implementada |
 | Resumen de pantalla principal | No implementado |
@@ -255,8 +257,6 @@ Sanctum, el middleware de roles y las rutas especificas de administrador y chofe
 
 Los siguientes comportamientos deben corregirse:
 
-- El listado de choferes no filtra por `empresa_id`.
-- La consulta, actualizacion y eliminacion de choferes no comprueba la empresa.
 - Varios servicios CRUD utilizan `all()` o `findOrFail()` sin alcance empresarial.
 
 ## Convencion recomendada para la API
@@ -273,26 +273,26 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 
 1. Definir si `realizado` equivale a `delivered` o a `finished`.
 2. Definir permisos y casos de uso del rol `asesor`.
-3. Definir si `fleetSize` se persiste o se utiliza solo durante el registro.
-4. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
-5. Definir si el registro devuelve inmediatamente un token Sanctum.
-6. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
-7. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
+3. Definir si la contrasena inicial del chofer sera fija, generada o enviada por el administrador.
+4. Revisar despues del MVP si cliente y producto vuelven a ser entidades relacionadas.
+5. Definir si se mantiene un endpoint agregado para la pantalla principal o peticiones separadas.
 
-## Roadmap recomendado por commits
+## Roadmap de trabajo actualizado
 
-1. `feat: implementar registro de empresa y administrador`
-2. `feat: agregar recuperacion y cambio de contrasena`
-3. `feat: adaptar gestion de choferes al contrato movil`
-4. `feat: crear entregas MVP con cliente y producto como campos`
-5. `feat: implementar asignacion y desasignacion de choferes`
-6. `feat: normalizar estados e historial de entregas`
-7. `feat: agregar endpoint de resumen principal`
-8. `security: proteger endpoints con Sanctum y roles`
-9. `security: aislar datos por empresa`
-10. `feat: automatizar auditoria mediante observers`
-11. `test: cubrir registro, permisos y reglas de negocio`
-12. `docs: documentar contrato final de la API`
+| Numero | Tarea | Estado |
+| --- | --- | --- |
+| 1 | Registro de empresa y administrador | Completada |
+| 2 | Recuperacion y cambio de contrasena | Pendiente |
+| 3 | Gestion de choferes adaptada al contrato movil | Completada |
+| 4 | Entregas MVP con cliente y producto como campos | Completada y probada |
+| 5 | Asignacion, reasignacion y desasignacion de choferes | Completada y probada |
+| 6 | Estados canonicos e historial transaccional | Completada y probada |
+| 7 | Resumen para la pantalla principal | Pendiente |
+| 8 | Proteccion de todos los endpoints con Sanctum y roles | Pendiente |
+| 9 | Aislamiento de datos por empresa | En progreso: completo en choferes y entregas |
+| 10 | Auditoria automatica mediante Observers | Pendiente |
+| 11 | Pruebas de registro, permisos y reglas de negocio | En progreso; bloqueadas localmente por `pdo_sqlite` |
+| 12 | Documentacion final del contrato de API | En progreso |
 
 ## Plan tecnico original y estado
 
@@ -316,8 +316,8 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 | Numero | Regla | Estado actual |
 | --- | --- | --- |
 | 1 | Una empresa se registra junto con su administrador. | Implementado |
-| 2 | El administrador solo gestiona datos de su empresa. | Incompleto |
-| 3 | El administrador crea choferes y entregas. | Parcialmente implementado |
+| 2 | El administrador solo gestiona datos de su empresa. | Implementado en choferes y entregas; pendiente en CRUD genericos |
+| 3 | El administrador crea choferes y entregas. | Implementado |
 | 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
 | 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Implementado |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
@@ -327,9 +327,66 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 
 Estas reglas tienen prioridad sobre los CRUD genericos. Cada endpoint nuevo debe indicar explicitamente que actor puede utilizarlo, a que empresa pertenecen los recursos afectados y si la operacion necesita una transaccion.
 
-## Commits de normalizacion ya realizados
+## Pendientes priorizados
+
+### Prioridad inmediata
+
+1. Agregar filtros y paginacion a `GET /api/v1/admin/entregas`:
+   - `estado_id`.
+   - `chofer_id`.
+   - entregas sin chofer.
+   - paginacion conservando el alcance por empresa.
+2. Proteger o retirar los CRUD genericos que todavia estan fuera de los grupos Sanctum.
+3. Completar el aislamiento por empresa en los servicios genericos.
+
+### Prioridad posterior
+
+1. Implementar recuperacion y cambio de contrasena.
+2. Definir e implementar el resumen de la pantalla principal.
+3. Automatizar auditoria con Observers.
+4. Incorporar Form Requests y API Resources.
+5. Definir el rol asesor y el significado final de `realizado`.
+
+## Estado al cierre del 1 de julio de 2026
+
+Funciona y fue probado manualmente:
+
+- Registro de empresa y administrador con token Sanctum.
+- CRUD administrativo de choferes restringido por empresa.
+- Alta de entrega MVP con `cliente`, `producto`, `direccion_destino` y `referencia` opcional.
+- Empresa obtenida del administrador autenticado y estado inicial `pending`.
+- Asignacion, reasignacion y desasignacion de choferes de la misma empresa.
+- Aceptacion y avance secuencial `assigned -> accepted -> on_the_way -> delivered -> finished`.
+- Historial atomico para asignacion, desasignacion, aceptacion y cambios posteriores.
+- Detalle de entrega con estado, usuario e historial de transiciones.
+- Catalogo canonico de estados garantizado mediante migracion.
+
+Limitaciones actuales:
+
+- Los CRUD genericos definidos fuera de los grupos protegidos todavia necesitan revision de autenticacion y alcance empresarial.
+- No existen recuperacion de contrasena, resumen principal ni auditoria automatica.
+- Las pruebas Feature no se pueden ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; la sintaxis, Pint y las pruebas manuales con Insomnia si fueron validadas.
+
+## Proxima sesion recomendada
+
+Implementar filtros y paginacion para `GET /api/v1/admin/entregas`, alineados con la pantalla de Figma:
+
+1. Validar los parametros de consulta.
+2. Filtrar por `estado_id` y `chofer_id`.
+3. Permitir consultar entregas sin chofer.
+4. Paginar resultados sin perder el filtro por `empresa_id`.
+5. Agregar pruebas Feature.
+6. Probar manualmente con Insomnia y actualizar este documento.
+
+No volver a agregar `fecha_programada`, `cantidad`, `latitud` ni `longitud` a la entrega MVP sin una nueva decision de negocio.
+
+## Commits relevantes
 
 - `cb065c6 refactor: organizar controladores por dominio`
 - `e660ca9 refactor: versionar y normalizar rutas de la API`
 - `cb0da41 refactor: normalizar tipos JsonResponse`
-
+- `7a23163 feat: simplificar entregas para el MVP`
+- `9431c75 feat: asegurar catalogo de estados de entrega`
+- `f05d134 fix: hacer idempotente el seeder de usuarios`
+- `cb54256 feat: completar asignacion de choferes`
+- `ba7bc72 feat: registrar historial de estados de entrega`
