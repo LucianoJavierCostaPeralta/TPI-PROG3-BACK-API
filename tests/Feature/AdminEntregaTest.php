@@ -110,6 +110,12 @@ class AdminEntregaTest extends TestCase
             'chofer_id' => $chofer->id,
             'estado_id' => Entrega::ESTADO_ASSIGNED,
         ]);
+        $this->assertDatabaseHas('historial_estados_entrega', [
+            'entrega_id' => $entrega->id,
+            'estado_anterior_id' => Entrega::ESTADO_PENDING,
+            'estado_nuevo_id' => Entrega::ESTADO_ASSIGNED,
+            'usuario_id' => $admin->id,
+        ]);
     }
 
     public function test_admin_can_reassign_entrega_to_another_chofer(): void
@@ -137,6 +143,7 @@ class AdminEntregaTest extends TestCase
             'chofer_id' => $nuevoChofer->id,
             'estado_id' => Entrega::ESTADO_ASSIGNED,
         ]);
+        $this->assertDatabaseCount('historial_estados_entrega', 0);
     }
 
     public function test_admin_can_unassign_entrega(): void
@@ -162,6 +169,12 @@ class AdminEntregaTest extends TestCase
             'chofer_id' => null,
             'estado_id' => Entrega::ESTADO_PENDING,
             'fecha_asignacion' => null,
+        ]);
+        $this->assertDatabaseHas('historial_estados_entrega', [
+            'entrega_id' => $entrega->id,
+            'estado_anterior_id' => Entrega::ESTADO_ASSIGNED,
+            'estado_nuevo_id' => Entrega::ESTADO_PENDING,
+            'usuario_id' => $admin->id,
         ]);
     }
 

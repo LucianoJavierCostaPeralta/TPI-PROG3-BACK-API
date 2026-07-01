@@ -7,6 +7,7 @@ use App\Models\Entrega;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class EntregaController extends Controller
@@ -66,6 +67,9 @@ class EntregaController extends Controller
             'data' => $entrega->load([
                 'chofer:id,nombre_completo,email,telefono,rol_id',
                 'estado:id,nombre_estado',
+                'historialEstados.estadoAnterior:id,nombre_estado',
+                'historialEstados.estadoNuevo:id,nombre_estado',
+                'historialEstados.usuario:id,nombre_completo',
             ]),
         ]);
     }
@@ -96,11 +100,32 @@ class EntregaController extends Controller
         $choferId = $data['chofer_id'] ?? null;
         $isUnassigning = $choferId === null;
 
-        $entrega->update([
-            'chofer_id' => $choferId,
-            'estado_id' => $isUnassigning ? Entrega::ESTADO_PENDING : Entrega::ESTADO_ASSIGNED,
-            'fecha_asignacion' => $isUnassigning ? null : now(),
-        ]);
+        $estadoAnteriorId = $entrega->estado_id;
+        $estadoNuevoId = $isUnassigning ? Entrega::ESTADO_PENDING : Entrega::ESTADO_ASSIGNED;
+
+        DB::transaction(function () use (
+            $request,
+            $entrega,
+            $choferId,
+            $isUnassigning,
+            $estadoAnteriorId,
+            $estadoNuevoId
+        ): void {
+            $entrega->update([
+                'chofer_id' => $choferId,
+                'estado_id' => $estadoNuevoId,
+                'fecha_asignacion' => $isUnassigning ? null : now(),
+            ]);
+
+            if ($estadoAnteriorId !== $estadoNuevoId) {
+                $entrega->historialEstados()->create([
+                    'estado_anterior_id' => $estadoAnteriorId,
+                    'estado_nuevo_id' => $estadoNuevoId,
+                    'usuario_id' => $request->user()->id,
+                    'fecha_cambio' => now(),
+                ]);
+            }
+        });
 
         return response()->json([
             'message' => $isUnassigning

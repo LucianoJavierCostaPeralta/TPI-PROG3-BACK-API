@@ -68,6 +68,12 @@ class ChoferEntregaTest extends TestCase
         $this->patchJson("/api/v1/chofer/entregas/{$entrega->id}/accept")
             ->assertOk()
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_ACCEPTED);
+        $this->assertDatabaseHas('historial_estados_entrega', [
+            'entrega_id' => $entrega->id,
+            'estado_anterior_id' => Entrega::ESTADO_ASSIGNED,
+            'estado_nuevo_id' => Entrega::ESTADO_ACCEPTED,
+            'usuario_id' => $chofer->id,
+        ]);
     }
 
     public function test_chofer_can_move_entrega_to_en_camino_and_entregado(): void
@@ -92,6 +98,19 @@ class ChoferEntregaTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_DELIVERED);
+        $this->assertDatabaseHas('historial_estados_entrega', [
+            'entrega_id' => $entrega->id,
+            'estado_anterior_id' => Entrega::ESTADO_ACCEPTED,
+            'estado_nuevo_id' => Entrega::ESTADO_ON_THE_WAY,
+            'usuario_id' => $chofer->id,
+        ]);
+        $this->assertDatabaseHas('historial_estados_entrega', [
+            'entrega_id' => $entrega->id,
+            'estado_anterior_id' => Entrega::ESTADO_ON_THE_WAY,
+            'estado_nuevo_id' => Entrega::ESTADO_DELIVERED,
+            'usuario_id' => $chofer->id,
+        ]);
+        $this->assertDatabaseCount('historial_estados_entrega', 2);
     }
 
     public function test_chofer_cannot_update_entrega_from_another_chofer(): void

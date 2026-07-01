@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Entrega;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class EntregaController extends Controller
@@ -32,6 +33,9 @@ class EntregaController extends Controller
         return response()->json([
             'data' => $entrega->load([
                 'estado:id,nombre_estado',
+                'historialEstados.estadoAnterior:id,nombre_estado',
+                'historialEstados.estadoNuevo:id,nombre_estado',
+                'historialEstados.usuario:id,nombre_completo',
             ]),
         ]);
     }
@@ -46,9 +50,20 @@ class EntregaController extends Controller
             ], 422);
         }
 
-        $entrega->update([
-            'estado_id' => Entrega::ESTADO_ACCEPTED,
-        ]);
+        $estadoAnteriorId = $entrega->estado_id;
+
+        DB::transaction(function () use ($request, $entrega, $estadoAnteriorId): void {
+            $entrega->update([
+                'estado_id' => Entrega::ESTADO_ACCEPTED,
+            ]);
+
+            $entrega->historialEstados()->create([
+                'estado_anterior_id' => $estadoAnteriorId,
+                'estado_nuevo_id' => Entrega::ESTADO_ACCEPTED,
+                'usuario_id' => $request->user()->id,
+                'fecha_cambio' => now(),
+            ]);
+        });
 
         return response()->json([
             'message' => 'Entrega aceptada correctamente.',
@@ -70,9 +85,20 @@ class EntregaController extends Controller
             ], 422);
         }
 
-        $entrega->update([
-            'estado_id' => $data['estado_id'],
-        ]);
+        $estadoAnteriorId = $entrega->estado_id;
+
+        DB::transaction(function () use ($request, $entrega, $data, $estadoAnteriorId): void {
+            $entrega->update([
+                'estado_id' => $data['estado_id'],
+            ]);
+
+            $entrega->historialEstados()->create([
+                'estado_anterior_id' => $estadoAnteriorId,
+                'estado_nuevo_id' => $data['estado_id'],
+                'usuario_id' => $request->user()->id,
+                'fecha_cambio' => now(),
+            ]);
+        });
 
         return response()->json([
             'message' => 'Estado de la entrega actualizado correctamente.',

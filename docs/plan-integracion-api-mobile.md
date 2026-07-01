@@ -210,7 +210,7 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Asignar o reasignar chofer | Implementado |
 | Desasignar chofer | Implementado |
 | Actualizar estado | Contrato incompatible |
-| Historial automatico de estados | No implementado |
+| Historial automatico de estados | Implementado y probado |
 | Auditoria automatica | No implementada |
 | Resumen de pantalla principal | No implementado |
 | Rol asesor | No implementado |
@@ -237,7 +237,7 @@ El esquema maestro-detalle historico permanece disponible. La regla del MVP lo r
 
 ### Historial de estados
 
-Existen la tabla y el modelo `HistorialEstadoEntrega`, pero los cambios realizados por el chofer no generan registros de historial.
+Los cambios de estado por asignacion, desasignacion, aceptacion y avance del chofer generan registros en `historial_estados_entrega` dentro de la misma transaccion que actualiza la entrega. Una reasignacion no crea historial porque mantiene el estado `assigned`. La implementacion incluye estado anterior, estado nuevo, usuario y fecha del cambio.
 
 ### Auditoria
 
@@ -321,7 +321,7 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 | 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
 | 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Implementado |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
-| 7 | Cada cambio de estado crea un historial en la misma transaccion. | Pendiente |
+| 7 | Cada cambio de estado crea un historial en la misma transaccion. | Implementado y probado |
 | 8 | Los cambios relevantes generan auditoria automatica. | Pendiente |
 | 9 | Salud, login y registro son publicos; el resto requiere Sanctum y rol. | Incompleto |
 
