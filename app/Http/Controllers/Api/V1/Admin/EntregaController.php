@@ -58,6 +58,7 @@ class EntregaController extends Controller
 
         $data = $request->validate([
             'cliente' => ['required', 'string', 'min:2', 'max:150'],
+            'cliente_dni' => ['required', 'string', 'regex:/^\d{8}$/'],
             'producto' => ['required', 'string', 'min:2', 'max:150'],
             'direccion_destino' => ['required', 'string', 'min:3', 'max:255'],
             'orden_ruta' => ['nullable', 'integer', 'min:1'],
@@ -67,6 +68,7 @@ class EntregaController extends Controller
         $entrega = Entrega::create([
             'empresa_id' => $admin->empresa_id,
             'cliente' => $data['cliente'],
+            'cliente_dni' => $data['cliente_dni'],
             'producto' => $data['producto'],
             'estado_id' => Entrega::ESTADO_PENDING,
             'direccion_destino' => $data['direccion_destino'],

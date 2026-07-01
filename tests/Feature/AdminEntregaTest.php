@@ -28,6 +28,7 @@ class AdminEntregaTest extends TestCase
 
         $response = $this->postJson('/api/v1/admin/entregas', [
             'cliente' => 'Comercio Centro',
+            'cliente_dni' => '30123456',
             'producto' => 'Caja mediana',
             'direccion_destino' => 'Calle 321',
             'referencia' => 'Paquetes medianos',
@@ -36,12 +37,14 @@ class AdminEntregaTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('data.cliente', 'Comercio Centro')
+            ->assertJsonPath('data.cliente_dni', '30123456')
             ->assertJsonPath('data.producto', 'Caja mediana')
             ->assertJsonPath('data.direccion_destino', 'Calle 321')
             ->assertJsonPath('data.estado_id', Entrega::ESTADO_PENDING);
 
         $this->assertDatabaseHas('entregas', [
             'cliente' => 'Comercio Centro',
+            'cliente_dni' => '30123456',
             'producto' => 'Caja mediana',
             'direccion_destino' => 'Calle 321',
             'estado_id' => Entrega::ESTADO_PENDING,

@@ -42,6 +42,7 @@ class Entrega extends Model
         'chofer_id',
         'cliente_id',
         'cliente',
+        'cliente_dni',
         'producto',
         'estado_id',
         'direccion_destino',

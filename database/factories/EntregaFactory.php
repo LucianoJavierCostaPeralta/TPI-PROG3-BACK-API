@@ -25,6 +25,7 @@ class EntregaFactory extends Factory
             'cliente_id' => ClienteDestinatario::factory(),
             'estado_id' => Entrega::ESTADO_PENDING,
             'cliente' => fake()->name(),
+            'cliente_dni' => fake()->numerify('########'),
             'producto' => fake()->words(3, true),
             'direccion_destino' => fake()->streetAddress(),
             'orden_ruta' => fake()->numberBetween(1, 10),
