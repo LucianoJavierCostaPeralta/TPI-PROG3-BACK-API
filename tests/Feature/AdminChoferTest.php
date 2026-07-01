@@ -26,6 +26,8 @@ class AdminChoferTest extends TestCase
 
         $response = $this->postJson('/api/v1/admin/choferes', [
             'nombre_completo' => 'Juan Perez',
+            'dni' => '87654321',
+            'fecha_nacimiento' => '1990-05-12',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
             'password' => '123456',
@@ -49,6 +51,8 @@ class AdminChoferTest extends TestCase
 
         $this->postJson('/api/v1/admin/choferes', [
             'nombre_completo' => 'Juan123',
+            'dni' => '87654321',
+            'fecha_nacimiento' => '1990-05-12',
             'email' => 'juan@example.com',
             'telefono' => '3515551234',
             'password' => '123456',

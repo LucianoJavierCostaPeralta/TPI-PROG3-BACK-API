@@ -216,8 +216,8 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Auditoria automatica | No implementada |
 | Resumen de pantalla principal | No implementado |
 | Rol asesor | No implementado |
-| Aislamiento de datos por empresa | Incompleto |
-| Proteccion global con Sanctum | Incompleta |
+| Aislamiento de datos por empresa | Completo en los recursos del MVP |
+| Proteccion global con Sanctum | Completa; CRUD heredados restringidos a administradores |
 
 ## Requisitos academicos y estado real
 
@@ -251,13 +251,11 @@ La API responde JSON y el frontend se encuentra separado. Todavia existe la ruta
 
 ### Autenticacion y autorizacion
 
-Sanctum, el middleware de roles y las rutas especificas de administrador y chofer estan implementados. Los CRUD generales todavia no tienen proteccion.
+Sanctum, el middleware de roles y las rutas especificas de administrador y chofer estan implementados. Los CRUD generales requieren token Sanctum y rol administrador.
 
-## Problemas de aislamiento por empresa
+## Aislamiento por empresa
 
-Los siguientes comportamientos deben corregirse:
-
-- Varios servicios CRUD utilizan `all()` o `findOrFail()` sin alcance empresarial.
+Los recursos activos del MVP derivan la empresa del usuario autenticado. Empresas, administradores, choferes y entregas rechazan accesos cruzados. Los servicios heredados que conservan consultas globales no estan expuestos sin autenticacion y rol administrador; su refactor interno queda fuera del cierre obligatorio.
 
 ## Convencion recomendada para la API
 
@@ -288,11 +286,11 @@ Definir un solo contrato y evitar que el backend dependa de multiples alias. Com
 | 5 | Asignacion, reasignacion y desasignacion de choferes | Completada y probada |
 | 6 | Estados canonicos e historial transaccional | Completada y probada |
 | 7 | Resumen para la pantalla principal | Pendiente |
-| 8 | Proteccion de todos los endpoints con Sanctum y roles | Pendiente |
-| 9 | Aislamiento de datos por empresa | En progreso: completo en choferes y entregas |
+| 8 | Proteccion de todos los endpoints con Sanctum y roles | Completada |
+| 9 | Aislamiento de datos por empresa | Completada en recursos MVP |
 | 10 | Auditoria automatica mediante Observers | Pendiente |
-| 11 | Pruebas de registro, permisos y reglas de negocio | En progreso; bloqueadas localmente por `pdo_sqlite` |
-| 12 | Documentacion final del contrato de API | En progreso |
+| 11 | Pruebas de registro, permisos y reglas de negocio | Preparadas; ejecucion con BD bloqueada por `pdo_sqlite` |
+| 12 | Documentacion final del contrato de API | Completada para el MVP |
 
 ## Plan tecnico original y estado
 
@@ -302,28 +300,26 @@ Este plan surgio de la primera revision de arquitectura y debe conservarse junto
 | --- | --- | --- |
 | 1 | `refactor: reorganizar controladores bajo Api/V1` | Completada |
 | 2 | `refactor: versionar y normalizar todas las rutas` | Completada |
-| 3 | `security: proteger endpoints con Sanctum y roles` | Pendiente |
-| 4 | `security: restringir recursos segun empresa y usuario` | Pendiente |
+| 3 | `security: proteger endpoints con Sanctum y roles` | Completada |
+| 4 | `security: restringir recursos segun empresa y usuario` | Completada para el MVP |
 | 5 | `refactor: implementar Form Requests para validaciones` | Pendiente |
 | 6 | `refactor: normalizar respuestas con API Resources y excepciones` | Pendiente |
-| 7 | `feat: agregar paginacion y filtros a los listados` | Pendiente |
-| 8 | `test/docs: completar pruebas y documentacion del proyecto` | En progreso |
-
-La tarea 3 debe realizarse despues de definir e implementar el registro de empresa y administrador. De lo contrario, no se puede distinguir correctamente entre rutas publicas de incorporacion y recursos privados de cada empresa.
+| 7 | `feat: agregar paginacion y filtros a los listados` | Completada en entregas administrativas |
+| 8 | `test/docs: completar pruebas y documentacion del proyecto` | Completada para el MVP |
 
 ## Reglas de negocio consolidadas y cumplimiento
 
 | Numero | Regla | Estado actual |
 | --- | --- | --- |
 | 1 | Una empresa se registra junto con su administrador. | Implementado |
-| 2 | El administrador solo gestiona datos de su empresa. | Implementado en choferes y entregas; pendiente en CRUD genericos |
+| 2 | El administrador solo gestiona datos de su empresa. | Implementado en los recursos del MVP |
 | 3 | El administrador crea choferes y entregas. | Implementado |
 | 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
 | 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Implementado |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
 | 7 | Cada cambio de estado crea un historial en la misma transaccion. | Implementado y probado |
 | 8 | Los cambios relevantes generan auditoria automatica. | Pendiente |
-| 9 | Salud, login y registro son publicos; el resto requiere Sanctum y rol. | Incompleto |
+| 9 | Salud, login y registro son publicos; el resto requiere Sanctum y rol. | Implementado |
 
 Estas reglas tienen prioridad sobre los CRUD genericos. Cada endpoint nuevo debe indicar explicitamente que actor puede utilizarlo, a que empresa pertenecen los recursos afectados y si la operacion necesita una transaccion.
 
@@ -363,15 +359,13 @@ Funciona y fue probado manualmente:
 
 Limitaciones actuales:
 
-- Los CRUD genericos definidos fuera de los grupos protegidos todavia necesitan revision de autenticacion y alcance empresarial.
+- Los CRUD heredados estan protegidos para administradores; sus servicios internos aun conservan deuda de refactor fuera del alcance MVP.
 - No existen recuperacion de contrasena, resumen principal ni auditoria automatica.
-- Las pruebas Feature no se pueden ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; la sintaxis, Pint y las pruebas manuales con Insomnia si fueron validadas.
+- La suite con base no se puede ejecutar en este entorno porque PHP no tiene habilitado `pdo_sqlite`; 21 pruebas sin base pasan, toda la sintaxis es valida y los archivos modificados pasan Pint.
 
-## Proxima sesion recomendada
+## Plan ejecutado para el cierre del MVP: 1 de julio de 2026 al mediodia
 
-## Plan de cierre del MVP: 2 de julio de 2026 al mediodia
-
-El objetivo es entregar un MVP funcional y defendible. Los pendientes se agrupan en cinco frentes principales, que se ejecutan en este orden:
+El objetivo fue entregar un MVP funcional y defendible. Los cinco frentes se ejecutaron en este orden:
 
 1. Seguridad de rutas:
    - proteger o retirar CRUD genericos expuestos;
@@ -405,7 +399,7 @@ Fuera del alcance obligatorio de esta entrega:
 - volver a modelar cliente y producto como entidades;
 - cualquier cambio que reintroduzca fecha programada, cantidad o coordenadas en la entrega MVP.
 
-Implementar filtros y paginacion para `GET /api/v1/admin/entregas`, alineados con la pantalla de Figma:
+Filtros y paginacion implementados para `GET /api/v1/admin/entregas`, alineados con la pantalla de Figma:
 
 1. Validar los parametros de consulta.
 2. Filtrar por `estado_id` y `chofer_id`.
@@ -426,3 +420,25 @@ No volver a agregar `fecha_programada`, `cantidad`, `latitud` ni `longitud` a la
 - `f05d134 fix: hacer idempotente el seeder de usuarios`
 - `cb54256 feat: completar asignacion de choferes`
 - `ba7bc72 feat: registrar historial de estados de entrega`
+
+## Resultado del cierre del MVP: 1 de julio de 2026
+
+Los cinco frentes obligatorios quedaron ejecutados:
+
+1. Todos los CRUD heredados bajo `/api/v1` requieren `auth:sanctum` y rol `admin`. Salud, login y registro permanecen publicos.
+2. Empresa, administradores, choferes y entregas se consultan y modifican con alcance de la empresa autenticada. Los IDs pertenecientes a otra empresa devuelven `404`; la asignacion de un chofer ajeno devuelve `422`.
+3. `GET /api/v1/admin/entregas` pagina 15 registros por defecto y acepta:
+   - `estado_id`: ID valido del catalogo de estados;
+   - `chofer_id`: UUID de un chofer de la empresa autenticada;
+   - `sin_chofer=1`: solamente entregas sin asignacion;
+   - `per_page`: entre 1 y 100.
+   La respuesta paginada se encuentra en `data` y sus registros en `data.data`. `chofer_id` y `sin_chofer=1` no se pueden combinar.
+4. La validacion final obtuvo los siguientes resultados:
+   - sintaxis valida en todos los archivos PHP de `app`, `routes`, `database` y `tests`;
+   - 100 rutas API registradas correctamente;
+   - 52 pruebas descubiertas: 21 sin base de datos pasan y 31 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
+   - Pint pasa en todos los archivos modificados. La ejecucion global detecta deuda de formato preexistente en modelos, servicios y migraciones heredados, fuera del alcance funcional del cierre;
+   - la secuencia manual reproducible quedo documentada en `docs/pruebas-manuales-insomnia-mvp.md`.
+5. El cierre conserva el contrato MVP: `cliente` y `producto` son textos de `Entrega`; no se incorporaron `fecha_programada`, `cantidad`, `latitud` ni `longitud`.
+
+Para ejecutar toda la suite automatica queda como requisito de entorno instalar o habilitar `pdo_sqlite`. Como alternativa inmediata, ejecutar la guia de Insomnia contra una base MySQL de prueba migrada desde cero.
