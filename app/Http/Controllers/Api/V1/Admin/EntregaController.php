@@ -9,19 +9,43 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class EntregaController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $data = $request->validate([
+            'estado_id' => ['sometimes', 'integer', Rule::exists('estado_entregas', 'id')],
+            'chofer_id' => [
+                'sometimes',
+                'uuid',
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->where('rol_id', User::ROL_CHOFER)
+                    ->where('empresa_id', $request->user()->empresa_id)),
+            ],
+            'sin_chofer' => ['sometimes', 'boolean'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        if (($data['sin_chofer'] ?? false) && isset($data['chofer_id'])) {
+            throw ValidationException::withMessages([
+                'chofer_id' => ['No se puede combinar chofer_id con sin_chofer.'],
+            ]);
+        }
+
         $entregas = Entrega::query()
             ->where('empresa_id', $request->user()->empresa_id)
+            ->when(isset($data['estado_id']), fn ($query) => $query->where('estado_id', $data['estado_id']))
+            ->when(isset($data['chofer_id']), fn ($query) => $query->where('chofer_id', $data['chofer_id']))
+            ->when($data['sin_chofer'] ?? false, fn ($query) => $query->whereNull('chofer_id'))
             ->with([
                 'chofer:id,nombre_completo,email,telefono,rol_id',
                 'estado:id,nombre_estado',
             ])
             ->latest()
-            ->get();
+            ->paginate($data['per_page'] ?? 15)
+            ->withQueryString();
 
         return response()->json([
             'data' => $entregas,

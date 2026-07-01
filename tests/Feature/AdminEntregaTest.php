@@ -63,8 +63,8 @@ class AdminEntregaTest extends TestCase
 
         $this->getJson('/api/v1/admin/entregas')
             ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.estado_id', Entrega::ESTADO_PENDING);
+            ->assertJsonCount(1, 'data.data')
+            ->assertJsonPath('data.data.0.estado_id', Entrega::ESTADO_PENDING);
     }
 
     public function test_admin_can_show_entrega(): void
