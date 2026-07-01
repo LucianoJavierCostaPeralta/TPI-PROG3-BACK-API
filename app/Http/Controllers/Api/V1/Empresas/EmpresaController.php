@@ -3,126 +3,66 @@
 namespace App\Http\Controllers\Api\V1\Empresas;
 
 use App\Http\Controllers\Controller;
-use App\Services\EmpresaService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Empresa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class EmpresaController extends Controller
 {
-    protected EmpresaService $empresaService;
-
-    public function __construct(EmpresaService $empresaService)
+    public function index(Request $request): JsonResponse
     {
-        $this->empresaService = $empresaService;
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Empresa retrieved successfully',
+            'data' => [$request->user()->empresa],
+        ]);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $empresas = $this->empresaService->getAll();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Empresa retrieved successfully',
+            'data' => $this->empresa($request, $id),
+        ]);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $empresa = $this->empresa($request, $id);
+        $data = $request->validate([
+            'razon_social' => ['sometimes', 'required', 'string', 'max:255'],
+            'cuit' => ['sometimes', 'required', 'string', 'max:20', Rule::unique('empresas', 'cuit')->ignore($empresa->id)],
+            'email_contacto' => ['sometimes', 'required', 'email', 'max:255'],
+            'telefono' => ['sometimes', 'required', 'string', 'max:50'],
+            'tamano_flota' => ['sometimes', 'nullable', 'string', 'max:50'],
+        ]);
+
+        $empresa->update($data);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Empresas retrieved successfully',
-            'data' => $empresas,
-        ], 200);
+            'message' => 'Empresa updated successfully',
+            'data' => $empresa,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        try {
-            $empresa = $this->empresaService->create($request->all());
+        $this->empresa($request, $id)->delete();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Empresa created successfully',
-                'data' => $empresa,
-            ], 201);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Empresa deleted successfully',
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id): JsonResponse
+    private function empresa(Request $request, string $id): Empresa
     {
-        try {
-            $empresa = $this->empresaService->getById($id);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Empresa retrieved successfully',
-                'data' => $empresa,
-            ], 200);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Empresa not found',
-            ], 404);
-        }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id): JsonResponse
-    {
-        try {
-            $empresa = $this->empresaService->update($request->all(), $id);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Empresa updated successfully',
-                'data' => $empresa,
-            ], 200);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Empresa not found',
-            ], 404);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id): JsonResponse
-    {
-        try {
-            $this->empresaService->delete($id);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Empresa deleted successfully',
-            ], 200);
-
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Empresa not found',
-            ], 404);
-        }
+        return Empresa::query()
+            ->whereKey($id)
+            ->whereKey($request->user()->empresa_id)
+            ->firstOrFail();
     }
 }
