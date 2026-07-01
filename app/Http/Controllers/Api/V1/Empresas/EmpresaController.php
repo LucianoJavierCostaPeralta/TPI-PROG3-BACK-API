@@ -8,8 +8,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/** @tags Administracion - Empresa */
 class EmpresaController extends Controller
 {
+    /** Consultar la empresa autenticada. */
     public function index(Request $request): JsonResponse
     {
         return response()->json([
@@ -19,6 +21,7 @@ class EmpresaController extends Controller
         ]);
     }
 
+    /** Consultar el detalle de la empresa autenticada. */
     public function show(Request $request, string $id): JsonResponse
     {
         return response()->json([
@@ -28,6 +31,7 @@ class EmpresaController extends Controller
         ]);
     }
 
+    /** Actualizar la empresa autenticada. */
     public function update(Request $request, string $id): JsonResponse
     {
         $empresa = $this->empresa($request, $id);
@@ -48,6 +52,7 @@ class EmpresaController extends Controller
         ]);
     }
 
+    /** Eliminar la empresa autenticada. */
     public function destroy(Request $request, string $id): JsonResponse
     {
         $this->empresa($request, $id)->delete();

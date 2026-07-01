@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\EstadoEntregaService;
 use Illuminate\Http\JsonResponse;
 
+/** @tags Catalogos */
 class EstadoEntregaController extends Controller
 {
     protected EstadoEntregaService $estadoService;

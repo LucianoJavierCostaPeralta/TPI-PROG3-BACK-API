@@ -8,8 +8,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+/** @tags Administracion - Administradores */
 class UserController extends Controller
 {
+    /** Listar administradores de la empresa. */
     public function index(Request $request): JsonResponse
     {
         $users = User::query()
@@ -25,6 +27,7 @@ class UserController extends Controller
         ]);
     }
 
+    /** Crear un administrador en la empresa. */
     public function store(Request $request): JsonResponse
     {
         $data = $this->validatedData($request);
@@ -40,6 +43,7 @@ class UserController extends Controller
         ], 201);
     }
 
+    /** Consultar un administrador de la empresa. */
     public function show(Request $request, string $id): JsonResponse
     {
         return response()->json([
@@ -49,6 +53,7 @@ class UserController extends Controller
         ]);
     }
 
+    /** Actualizar un administrador de la empresa. */
     public function update(Request $request, string $id): JsonResponse
     {
         $user = $this->user($request, $id);
@@ -61,6 +66,7 @@ class UserController extends Controller
         ]);
     }
 
+    /** Eliminar un administrador de la empresa. */
     public function destroy(Request $request, string $id): JsonResponse
     {
         $this->user($request, $id)->delete();

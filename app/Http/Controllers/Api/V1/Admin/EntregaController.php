@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
+/** @tags Administracion - Entregas */
 class EntregaController extends Controller
 {
+    /** Listar, filtrar y paginar las entregas de la empresa. */
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -52,6 +54,7 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Crear una entrega con cliente, DNI y producto. */
     public function store(Request $request): JsonResponse
     {
         $admin = $request->user();
@@ -85,6 +88,7 @@ class EntregaController extends Controller
         ], 201);
     }
 
+    /** Consultar una entrega y su historial. */
     public function show(Request $request, Entrega $entrega): JsonResponse
     {
         $this->ensureEntregaBelongsToEmpresa($request, $entrega);
@@ -100,6 +104,7 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Asignar, reasignar o desasignar un chofer. */
     public function assign(Request $request, Entrega $entrega): JsonResponse
     {
         $this->ensureEntregaBelongsToEmpresa($request, $entrega);

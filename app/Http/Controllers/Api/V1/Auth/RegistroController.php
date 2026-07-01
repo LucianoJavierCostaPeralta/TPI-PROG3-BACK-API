@@ -7,10 +7,12 @@ use App\Http\Requests\Api\V1\Auth\RegisterEmpresaRequest;
 use App\Services\RegistroEmpresaService;
 use Illuminate\Http\JsonResponse;
 
+/** @tags Autenticacion */
 class RegistroController extends Controller
 {
     public function __construct(private readonly RegistroEmpresaService $registroEmpresaService) {}
 
+    /** Registrar una empresa con su administrador. */
     public function __invoke(RegisterEmpresaRequest $request): JsonResponse
     {
         $registro = $this->registroEmpresaService->registrar($request->validated());

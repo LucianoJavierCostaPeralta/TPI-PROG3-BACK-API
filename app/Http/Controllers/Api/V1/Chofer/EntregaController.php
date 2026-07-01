@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
+/** @tags Chofer - Entregas */
 class EntregaController extends Controller
 {
+    /** Listar las entregas asignadas al chofer. */
     public function index(Request $request): JsonResponse
     {
         $entregas = Entrega::query()
@@ -28,6 +30,7 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Consultar una entrega asignada y su historial. */
     public function show(Request $request, Entrega $entrega): JsonResponse
     {
         $this->ensureAssignedToChofer($request, $entrega);
@@ -42,6 +45,7 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Aceptar una entrega asignada. */
     public function accept(Request $request, Entrega $entrega): JsonResponse
     {
         $this->ensureAssignedToChofer($request, $entrega);
@@ -73,6 +77,7 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Avanzar el estado; delivered exige el DNI del cliente. */
     public function state(Request $request, Entrega $entrega): JsonResponse
     {
         $this->ensureAssignedToChofer($request, $entrega);

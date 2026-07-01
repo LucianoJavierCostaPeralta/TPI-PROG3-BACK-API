@@ -56,3 +56,19 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Documentacion OpenAPI
+
+La referencia visual de la API se genera automaticamente con Scramble (OpenAPI 3.1):
+
+1. Ejecutar `php artisan serve` con `APP_ENV=local`.
+2. Abrir `http://127.0.0.1:8000/docs/api`.
+3. Para probar rutas protegidas, iniciar sesion, copiar el token y cargarlo en **Security / Bearer Auth**.
+
+El documento JSON se encuentra en `http://127.0.0.1:8000/docs/api.json` y tambien puede exportarse con:
+
+```bash
+php artisan scramble:export
+```
+
+Por seguridad, la UI solo es accesible por defecto en el entorno `local`.

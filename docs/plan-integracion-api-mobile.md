@@ -442,9 +442,20 @@ Los cinco frentes obligatorios quedaron ejecutados:
 4. La validacion final obtuvo los siguientes resultados:
    - sintaxis valida en todos los archivos PHP de `app`, `routes`, `database` y `tests`;
    - 28 rutas API registradas correctamente;
-   - 59 pruebas descubiertas: 24 sin base de datos pasan y 35 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
+   - 60 pruebas descubiertas: 25 sin base de datos pasan y 35 quedan bloqueadas antes de ejecutar porque falta `pdo_sqlite`;
    - Pint pasa en todos los archivos modificados. La ejecucion global detecta deuda de formato preexistente en modelos, servicios y migraciones heredados, fuera del alcance funcional del cierre;
    - la secuencia manual reproducible quedo documentada en `docs/pruebas-manuales-insomnia-mvp.md`.
 5. El cierre conserva el contrato MVP: `cliente`, `cliente_dni` y `producto` son campos directos de `Entrega`; no se incorporaron `fecha_programada`, `cantidad`, `latitud` ni `longitud`.
 
 Para ejecutar toda la suite automatica queda como requisito de entorno instalar o habilitar `pdo_sqlite`. Como alternativa inmediata, ejecutar la guia de Insomnia contra una base MySQL de prueba migrada desde cero.
+
+## Documentacion visual OpenAPI
+
+La API cuenta con documentacion OpenAPI 3.1 generada automaticamente mediante Scramble, compatible con Laravel 13. En entorno `local` se expone:
+
+- `GET /docs/api`: interfaz visual para explorar y ejecutar solicitudes.
+- `GET /docs/api.json`: especificacion OpenAPI interoperable.
+
+La documentacion contiene 20 paths y 29 operaciones agrupadas por dominio. Los cuerpos, filtros y parametros se infieren desde las validaciones reales del backend. La estrategia de seguridad inspecciona el middleware de las rutas: salud, login y registro figuran como publicos; el resto utiliza Bearer Sanctum. El contrato documenta `cliente_dni`, los filtros administrativos, la paginacion y el ciclo del chofer hasta `delivered`.
+
+Para probar una ruta protegida desde la UI se debe iniciar sesion, copiar el `token` devuelto y cargarlo en la opcion **Security / Bearer Auth**. La documentacion permanece restringida al entorno `local`; cualquier exposicion en otro entorno requiere definir explicitamente el gate `viewApiDocs`.

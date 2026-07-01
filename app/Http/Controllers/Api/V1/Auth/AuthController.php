@@ -9,8 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+/** @tags Autenticacion */
 class AuthController extends Controller
 {
+    /** Iniciar sesion y obtener un token Sanctum. */
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
@@ -43,6 +45,7 @@ class AuthController extends Controller
         ]);
     }
 
+    /** Consultar el perfil autenticado. */
     public function profile(Request $request): JsonResponse
     {
         return response()->json([
@@ -50,6 +53,7 @@ class AuthController extends Controller
         ]);
     }
 
+    /** Cerrar la sesion actual. */
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
