@@ -3,11 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Empresa;
-use App\Models\Rol;
-use App\Models\User;
-use App\Models\EstadoEntrega;
 use App\Models\MotivoRechazo;
+use App\Models\Rol;
 use App\Models\TipoVehiculo;
+use App\Models\User;
 use App\Models\ZonaCobertura;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,7 +26,7 @@ class DatabaseSeeder extends Seeder
                 'id' => Str::uuid(),
                 'razon_social' => 'Logística Central',
                 'email_contacto' => 'contacto@logisticacentral.com',
-                'telefono' => '1122334455'
+                'telefono' => '1122334455',
             ]
         );
 
@@ -44,35 +43,31 @@ class DatabaseSeeder extends Seeder
                 'password' => Hash::make('123456'),
                 'rol_id' => 1,
                 'empresa_id' => $empresa->id,
-                'activo' => true
+                'activo' => true,
             ]
         );
 
-        User::firstOrCreate(
-            ['email' => 'chofer@logistica.com'],
-            [
+        $choferExiste = User::query()
+            ->where('email', 'chofer@logistica.com')
+            ->orWhere('dni', '12345678')
+            ->exists();
+
+        if (! $choferExiste) {
+            User::create([
                 'id' => Str::uuid(),
                 'nombre_completo' => 'Juan Chofer',
+                'email' => 'chofer@logistica.com',
                 'dni' => '12345678',
                 'fecha_nacimiento' => '1990-05-12',
                 'password' => Hash::make('123456'),
                 'rol_id' => 2,
                 'empresa_id' => $empresa->id,
                 'telefono' => '1155667788',
-                'activo' => true
-            ]
-        );
-
-        // 4. Catálogo: Estados de Entrega (Cumpliendo la transición obligatoria del TP)
-        $estados = ['pending', 'assigned', 'accepted', 'on_the_way', 'delivered', 'finished', 'cancelled'];
-        foreach ($estados as $index => $estado) {
-            EstadoEntrega::updateOrCreate(
-                ['id' => $index + 1],
-                ['nombre_estado' => $estado]
-            );
+                'activo' => true,
+            ]);
         }
 
-        // 5. Catálogo: Motivos de Rechazo
+        // 4. Catálogo: Motivos de Rechazo
         $motivos = ['Domicilio cerrado', 'Cliente ausente', 'Dirección incorrecta'];
         foreach ($motivos as $index => $motivo) {
             MotivoRechazo::updateOrCreate(
@@ -81,19 +76,19 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 6. Catálogo: Tipos de Vehículo
+        // 5. Catálogo: Tipos de Vehículo
         TipoVehiculo::updateOrCreate(['id' => 1], ['nombre_tipo' => 'Moto', 'capacidad_kg' => 50]);
         TipoVehiculo::updateOrCreate(['id' => 2], ['nombre_tipo' => 'Furgoneta', 'capacidad_kg' => 500]);
         TipoVehiculo::updateOrCreate(['id' => 3], ['nombre_tipo' => 'Camión', 'capacidad_kg' => 5000]);
 
-        // 7. Catálogo: Zonas de Cobertura
+        // 6. Catálogo: Zonas de Cobertura
         $zonas = ['Norte', 'Sur', 'Centro'];
         foreach ($zonas as $zona) {
             ZonaCobertura::firstOrCreate(
                 ['nombre_zona' => $zona, 'empresa_id' => $empresa->id],
                 [
                     'id' => Str::uuid(),
-                    'codigo_postal' => '1000'
+                    'codigo_postal' => '1000',
                 ]
             );
         }
