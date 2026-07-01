@@ -112,6 +112,59 @@ class AdminEntregaTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_reassign_entrega_to_another_chofer(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        $choferActual = User::where('email', 'chofer@logistica.com')->first();
+        $nuevoChofer = User::factory()->chofer()->create([
+            'empresa_id' => $admin->empresa_id,
+        ]);
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->assignedTo($choferActual)->create([
+            'empresa_id' => $admin->empresa_id,
+        ]);
+
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}/assign", [
+            'chofer_id' => $nuevoChofer->id,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.chofer_id', $nuevoChofer->id)
+            ->assertJsonPath('data.estado_id', Entrega::ESTADO_ASSIGNED);
+
+        $this->assertDatabaseHas('entregas', [
+            'id' => $entrega->id,
+            'chofer_id' => $nuevoChofer->id,
+            'estado_id' => Entrega::ESTADO_ASSIGNED,
+        ]);
+    }
+
+    public function test_admin_can_unassign_entrega(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        $chofer = User::where('email', 'chofer@logistica.com')->first();
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->assignedTo($chofer)->create([
+            'empresa_id' => $admin->empresa_id,
+        ]);
+
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}/assign", [
+            'chofer_id' => null,
+        ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Entrega desasignada correctamente.')
+            ->assertJsonPath('data.chofer_id', null)
+            ->assertJsonPath('data.estado_id', Entrega::ESTADO_PENDING);
+
+        $this->assertDatabaseHas('entregas', [
+            'id' => $entrega->id,
+            'chofer_id' => null,
+            'estado_id' => Entrega::ESTADO_PENDING,
+            'fecha_asignacion' => null,
+        ]);
+    }
+
     public function test_admin_cannot_assign_entrega_already_accepted(): void
     {
         $admin = User::where('email', 'admin@admin.com')->first();
@@ -131,7 +184,7 @@ class AdminEntregaTest extends TestCase
             'chofer_id' => $chofer->id,
         ])
             ->assertUnprocessable()
-            ->assertJsonPath('message', 'Solo se pueden asignar entregas pendientes o asignadas.');
+            ->assertJsonPath('message', 'Solo se pueden asignar o desasignar entregas pendientes o asignadas.');
     }
 
     public function test_admin_cannot_assign_entrega_to_admin_user(): void

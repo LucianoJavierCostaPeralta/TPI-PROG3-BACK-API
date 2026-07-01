@@ -76,7 +76,8 @@ class EntregaController extends Controller
 
         $data = $request->validate([
             'chofer_id' => [
-                'required',
+                'present',
+                'nullable',
                 'uuid',
                 Rule::exists('users', 'id')->where(function ($query) use ($request) {
                     $query
@@ -88,18 +89,23 @@ class EntregaController extends Controller
 
         if (! in_array($entrega->estado_id, [Entrega::ESTADO_PENDING, Entrega::ESTADO_ASSIGNED], true)) {
             return response()->json([
-                'message' => 'Solo se pueden asignar entregas pendientes o asignadas.',
+                'message' => 'Solo se pueden asignar o desasignar entregas pendientes o asignadas.',
             ], 422);
         }
 
+        $choferId = $data['chofer_id'] ?? null;
+        $isUnassigning = $choferId === null;
+
         $entrega->update([
-            'chofer_id' => $data['chofer_id'],
-            'estado_id' => Entrega::ESTADO_ASSIGNED,
-            'fecha_asignacion' => now(),
+            'chofer_id' => $choferId,
+            'estado_id' => $isUnassigning ? Entrega::ESTADO_PENDING : Entrega::ESTADO_ASSIGNED,
+            'fecha_asignacion' => $isUnassigning ? null : now(),
         ]);
 
         return response()->json([
-            'message' => 'Entrega asignada correctamente.',
+            'message' => $isUnassigning
+                ? 'Entrega desasignada correctamente.'
+                : 'Entrega asignada correctamente.',
             'data' => $entrega->load([
                 'chofer:id,nombre_completo,email,telefono,rol_id',
                 'estado:id,nombre_estado',

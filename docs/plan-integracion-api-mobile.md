@@ -164,7 +164,7 @@ Desasignar:
 }
 ```
 
-La API permite asignar un UUID, pero no admite `null`. Tambien debe validar que la entrega y el chofer pertenezcan a la empresa del administrador.
+Implementado y probado en el contrato: un UUID asigna o reasigna un chofer de la misma empresa; `null` desasigna, devuelve la entrega a `pending` y limpia `fecha_asignacion`. Las entregas aceptadas o posteriores no pueden modificarse desde este endpoint.
 
 ### Actualizar estado
 
@@ -207,8 +207,8 @@ Actualmente no existe un endpoint agregado que entregue esta informacion. El end
 | Recuperacion y cambio de contrasena | No implementado |
 | Crear chofer | Contrato incompatible |
 | Crear entrega con cliente y producto | Implementado y probado para el MVP |
-| Asignar chofer | Parcial |
-| Desasignar chofer | No implementado |
+| Asignar o reasignar chofer | Implementado |
+| Desasignar chofer | Implementado |
 | Actualizar estado | Contrato incompatible |
 | Historial automatico de estados | No implementado |
 | Auditoria automatica | No implementada |
@@ -257,8 +257,6 @@ Los siguientes comportamientos deben corregirse:
 
 - El listado de choferes no filtra por `empresa_id`.
 - La consulta, actualizacion y eliminacion de choferes no comprueba la empresa.
-- El listado y consulta administrativa de entregas no filtra por empresa.
-- La asignacion permite seleccionar un chofer de otra empresa.
 - Varios servicios CRUD utilizan `all()` o `findOrFail()` sin alcance empresarial.
 
 ## Convencion recomendada para la API
@@ -321,7 +319,7 @@ La tarea 3 debe realizarse despues de definir e implementar el registro de empre
 | 2 | El administrador solo gestiona datos de su empresa. | Incompleto |
 | 3 | El administrador crea choferes y entregas. | Parcialmente implementado |
 | 4 | Una entrega guarda un cliente y un producto como campos directos. | Implementado y probado para el MVP |
-| 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Pendiente |
+| 5 | Solo pueden asignarse choferes pertenecientes a la misma empresa. | Implementado |
 | 6 | El chofer solo accede a sus entregas. | Implementado para las rutas especificas de chofer |
 | 7 | Cada cambio de estado crea un historial en la misma transaccion. | Pendiente |
 | 8 | Los cambios relevantes generan auditoria automatica. | Pendiente |
