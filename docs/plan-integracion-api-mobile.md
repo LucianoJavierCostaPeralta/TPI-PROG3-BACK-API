@@ -369,6 +369,42 @@ Limitaciones actuales:
 
 ## Proxima sesion recomendada
 
+## Plan de cierre del MVP: 2 de julio de 2026 al mediodia
+
+El objetivo es entregar un MVP funcional y defendible. Los pendientes se agrupan en cinco frentes principales, que se ejecutan en este orden:
+
+1. Seguridad de rutas:
+   - proteger o retirar CRUD genericos expuestos;
+   - verificar middleware Sanctum y roles.
+2. Aislamiento por empresa:
+   - impedir lecturas o cambios entre empresas;
+   - priorizar recursos utilizados por el MVP.
+3. Listado de entregas:
+   - filtros por estado y chofer;
+   - entregas sin chofer;
+   - paginacion conservando el alcance empresarial.
+4. Validacion integral:
+   - probar registro, login, choferes y ciclo completo de entrega con Insomnia;
+   - corregir errores bloqueantes;
+   - verificar migraciones desde una base limpia si el entorno lo permite.
+5. Cierre:
+   - actualizar este documento;
+   - revisar el estado de Git;
+   - crear commits pequenos y hacer push final a `dev`.
+
+Solo si queda margen despues de cerrar esos cinco frentes:
+
+- resumen de pantalla principal;
+- recuperacion de contrasena;
+- auditoria automatica.
+
+Fuera del alcance obligatorio de esta entrega:
+
+- rol asesor;
+- migracion general a Form Requests y API Resources;
+- volver a modelar cliente y producto como entidades;
+- cualquier cambio que reintroduzca fecha programada, cantidad o coordenadas en la entrega MVP.
+
 Implementar filtros y paginacion para `GET /api/v1/admin/entregas`, alineados con la pantalla de Figma:
 
 1. Validar los parametros de consulta.
