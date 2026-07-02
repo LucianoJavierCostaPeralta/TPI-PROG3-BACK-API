@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -21,6 +22,19 @@ class OpenApiDocumentationTest extends TestCase
             MiddlewareAuthSecurityStrategy::class,
             config('scramble.security_strategy'),
         );
-        $this->assertSame('API Logistica MVP', config('scramble.ui.title'));
+        $this->assertSame('ZonasCore API', config('scramble.info.title'));
+        $this->assertSame('ZonasCore API', config('scramble.ui.title'));
+        $this->assertSame('swagger', config('scramble.renderer'));
+        $this->assertSame('api.swagger', config('scramble.renderers.swagger.view'));
+    }
+
+    public function test_documentation_ui_uses_swagger(): void
+    {
+        Gate::define('viewApiDocs', fn ($user = null): bool => true);
+
+        $this->get('/docs/api')
+            ->assertOk()
+            ->assertSee('SwaggerUIBundle', false)
+            ->assertSee('ZonasCore API');
     }
 }

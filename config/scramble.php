@@ -43,6 +43,8 @@ return [
     ],
 
     'info' => [
+        'title' => 'ZonasCore API',
+
         /*
          * API version.
          */
@@ -51,16 +53,23 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'API REST del MVP de logistica. Incluye registro, autenticacion Sanctum, administradores, choferes y ciclo de entregas con validacion de DNI.',
+        'description' => 'API REST de ZonasCore. Incluye registro, autenticación Sanctum, administradores, choferes y ciclo de entregas con validación de DNI.',
     ],
 
     'ui' => [
-        'title' => 'API Logistica MVP',
+        'title' => 'ZonasCore API',
     ],
 
-    'renderer' => 'elements',
+    'renderer' => 'swagger',
 
     'renderers' => [
+        'swagger' => [
+            'view' => 'api.swagger',
+            'cdn' => 'https://unpkg.com/swagger-ui-dist@5',
+            'persistAuthorization' => true,
+            'displayRequestDuration' => true,
+            'tryItOutEnabled' => true,
+        ],
         /*
          * Stoplight Elements config options: https://docs.stoplight.io/docs/elements/b074dc47b2826-elements-configuration-options
          */
