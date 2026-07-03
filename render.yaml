@@ -1,0 +1,35 @@
+services:
+  - type: web
+    repo: https://github.com/LucianoJavierCostaPeralta/TPI-PROG3-BACK-API
+    name: zonascore-api
+    runtime: docker
+    plan: free
+    branch: dev
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_NAME
+        value: ZonaScore API
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: CACHE_STORE
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
