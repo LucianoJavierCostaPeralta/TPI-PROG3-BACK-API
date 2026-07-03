@@ -26,7 +26,7 @@ Este repositorio contiene el backend Laravel. El cliente móvil/web se encuentra
 - Laravel 13.
 - Laravel Sanctum 4.
 - Eloquent ORM.
-- MySQL.
+- PostgreSQL en Render y MySQL para desarrollo local.
 - Dedoc Scramble para OpenAPI.
 - Swagger UI.
 - PHPUnit 12.
@@ -116,14 +116,21 @@ Estas credenciales son exclusivamente para desarrollo. No deben utilizarse en pr
 
 ## Integración con el frontend
 
-El proyecto Expo consume la API mediante:
+El despliegue público está disponible en:
+
+- API: [https://zonascore-api.onrender.com/api/v1](https://zonascore-api.onrender.com/api/v1)
+- Health check: [https://zonascore-api.onrender.com/api/health](https://zonascore-api.onrender.com/api/health)
+- Swagger UI: [https://zonascore-api.onrender.com/docs/api](https://zonascore-api.onrender.com/docs/api)
+
+El proyecto Expo consume la API publicada mediante:
 
 ```env
-EXPO_PUBLIC_API_URL=http://127.0.0.1:8000/api/v1
+EXPO_PUBLIC_API_URL=https://zonascore-api.onrender.com/api/v1
 ```
 
 | Entorno del frontend | URL recomendada |
 | --- | --- |
+| Render / cualquier dispositivo | `https://zonascore-api.onrender.com/api/v1` |
 | Emulador Android | `http://10.0.2.2:8000/api/v1` |
 | Simulador iOS | `http://127.0.0.1:8000/api/v1` |
 | Navegador web | `http://127.0.0.1:8000/api/v1` |
@@ -165,7 +172,7 @@ Services ── casos de uso y operaciones transaccionales
 Models Eloquent ── relaciones, casts y persistencia
           │
           ▼
-MySQL
+PostgreSQL en Render / MySQL local
 ```
 
 - **Routes** define la API versionada y aplica autenticación y autorización.
@@ -487,6 +494,11 @@ Ejemplo de validación:
 
 ## Swagger UI y OpenAPI
 
+Documentación del despliegue público:
+
+- Swagger UI: [https://zonascore-api.onrender.com/docs/api](https://zonascore-api.onrender.com/docs/api)
+- OpenAPI JSON: [https://zonascore-api.onrender.com/docs/api.json](https://zonascore-api.onrender.com/docs/api.json)
+
 Con `APP_ENV=local` y el servidor iniciado:
 
 - Swagger UI: [http://127.0.0.1:8000/docs/api](http://127.0.0.1:8000/docs/api)
@@ -506,7 +518,7 @@ La especificación también puede exportarse:
 php artisan scramble:export
 ```
 
-Por defecto, Scramble permite acceder a la documentación solamente en el entorno `local`. En otros entornos se debe autorizar explícitamente el Gate `viewApiDocs`.
+Por defecto, Scramble restringe la documentación fuera del entorno `local`. El despliegue de presentación la habilita explícitamente con `API_DOCS_PUBLIC=true`.
 
 ## Pruebas y calidad
 
