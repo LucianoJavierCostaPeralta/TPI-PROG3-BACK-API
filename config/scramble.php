@@ -150,10 +150,9 @@ return [
      */
     'flatten_deep_query_parameters' => true,
 
-    'middleware' => [
-        'web',
-        RestrictedDocsAccess::class,
-    ],
+    'middleware' => env('API_DOCS_PUBLIC', false)
+        ? ['web']
+        : ['web', RestrictedDocsAccess::class],
 
     'extensions' => [],
 

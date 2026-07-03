@@ -17,6 +17,8 @@ services:
         sync: false
       - key: APP_URL
         sync: false
+      - key: API_DOCS_PUBLIC
+        value: "true"
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
