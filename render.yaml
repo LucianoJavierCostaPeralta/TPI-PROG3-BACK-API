@@ -24,7 +24,9 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        sync: false
+        fromDatabase:
+          name: zonascore-db
+          property: connectionString
       - key: DB_SSLMODE
         value: require
       - key: CACHE_STORE
@@ -33,3 +35,10 @@ services:
         value: file
       - key: QUEUE_CONNECTION
         value: sync
+
+databases:
+  - name: zonascore-db
+    plan: free
+    region: oregon
+    databaseName: zonascore
+    user: zonascore
