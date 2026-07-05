@@ -112,7 +112,9 @@ return [
      * ],
      * ```
      */
-    'servers' => null,
+    'servers' => [
+        'API' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/api',
+    ],
 
     /**
      * Determines how Scramble stores the descriptions of enum cases.

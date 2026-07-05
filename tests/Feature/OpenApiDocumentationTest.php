@@ -26,6 +26,10 @@ class OpenApiDocumentationTest extends TestCase
         $this->assertSame('ZonasCore API', config('scramble.ui.title'));
         $this->assertSame('swagger', config('scramble.renderer'));
         $this->assertSame('api.swagger', config('scramble.renderers.swagger.view'));
+        $this->assertSame(
+            rtrim((string) config('app.url'), '/').'/api',
+            config('scramble.servers.API'),
+        );
     }
 
     public function test_documentation_ui_uses_swagger(): void
