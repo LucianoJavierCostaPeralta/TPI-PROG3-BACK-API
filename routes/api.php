@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Chofer\EntregaController as ChoferEntregaControl
 use App\Http\Controllers\Api\V1\Empresas\EmpresaController;
 use App\Http\Controllers\Api\V1\Empresas\UserController;
 use App\Http\Controllers\Api\V1\Logistica\EstadoEntregaController;
+use App\Http\Controllers\Api\V1\Soporte\SolicitudAsesoramientoController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -38,6 +39,7 @@ Route::prefix('v1')
         Route::patch('profile/password', [AuthController::class, 'updatePassword']);
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('estados-entrega', [EstadoEntregaController::class, 'index']);
+        Route::post('solicitudes-asesoramiento', [SolicitudAsesoramientoController::class, 'store']);
 
         Route::middleware('role:chofer')
             ->prefix('chofer')

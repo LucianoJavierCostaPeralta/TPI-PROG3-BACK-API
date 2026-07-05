@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SolicitudAsesoramiento extends Model
 {
@@ -15,6 +16,9 @@ class SolicitudAsesoramiento extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'usuario_id',
+        'datos_usuario',
+        'mensaje',
         'nombre_empresa',
         'cuit',
         'correo_corporativo',
@@ -22,4 +26,17 @@ class SolicitudAsesoramiento extends Model
         'cantidad_vehiculos',
         'leido',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'datos_usuario' => 'array',
+            'leido' => 'boolean',
+        ];
+    }
+
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'usuario_id');
+    }
 }

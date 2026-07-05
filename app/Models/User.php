@@ -4,11 +4,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -17,7 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
 /** @use HasFactory<UserFactory> */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasUuids;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable;
 
     public const ROL_ADMIN = 1;
 
@@ -107,6 +107,11 @@ class User extends Authenticatable
     public function notificaciones(): HasMany
     {
         return $this->hasMany(Notificacion::class, 'usuario_id');
+    }
+
+    public function solicitudesAsesoramiento(): HasMany
+    {
+        return $this->hasMany(SolicitudAsesoramiento::class, 'usuario_id');
     }
 
     public function historialEstados(): HasMany

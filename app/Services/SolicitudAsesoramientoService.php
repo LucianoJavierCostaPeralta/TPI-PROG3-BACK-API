@@ -3,7 +3,8 @@
 namespace App\Services;
 
 use App\Models\SolicitudAsesoramiento;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -21,8 +22,6 @@ class SolicitudAsesoramientoService
      * Crear una nueva solicitud de asesoramiento con validación.
      * Nota: el campo leido por defecto es 0 (no leído).
      *
-     * @param array $datos
-     * @return SolicitudAsesoramiento
      * @throws ValidationException
      */
     public function create(array $datos): SolicitudAsesoramiento
@@ -42,19 +41,45 @@ class SolicitudAsesoramientoService
         }
 
         // Nota: el campo leido por defecto es 0 si no se proporciona
-        if (!isset($datos['leido'])) {
+        if (! isset($datos['leido'])) {
             $datos['leido'] = false;
         }
 
         return $this->solicitud->create($datos);
     }
 
+    public function createForUser(User $user, string $mensaje): SolicitudAsesoramiento
+    {
+        $user->loadMissing('empresa');
+        $empresa = $user->empresa;
+
+        return $this->solicitud->create([
+            'usuario_id' => $user->id,
+            'datos_usuario' => [
+                'id' => $user->id,
+                'nombre_completo' => $user->nombre_completo,
+                'email' => $user->email,
+                'telefono' => $user->telefono,
+                'empresa' => $empresa ? [
+                    'id' => $empresa->id,
+                    'razon_social' => $empresa->razon_social,
+                    'cuit' => $empresa->cuit,
+                ] : null,
+            ],
+            'mensaje' => $mensaje,
+            'nombre_empresa' => $empresa?->razon_social,
+            'cuit' => $empresa?->cuit,
+            'correo_corporativo' => $user->email,
+            'telefono' => $user->telefono,
+            'cantidad_vehiculos' => $empresa?->tamano_flota,
+            'leido' => false,
+        ]);
+    }
+
     /**
      * Obtener todas las solicitudes de asesoramiento.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getAll(): \Illuminate\Database\Eloquent\Collection
+    public function getAll(): Collection
     {
         return $this->solicitud->all();
     }
@@ -78,16 +103,18 @@ class SolicitudAsesoramientoService
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
-        if (!isset($datos['leido'])) {
+        if (! isset($datos['leido'])) {
             $datos['leido'] = false;
         }
         $solicitud->update($datos);
+
         return $solicitud;
     }
 
     public function delete(string $id): bool
     {
         $solicitud = $this->solicitud->findOrFail($id);
+
         return $solicitud->delete();
     }
 }

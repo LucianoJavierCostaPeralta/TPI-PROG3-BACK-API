@@ -39,22 +39,20 @@ class SolicitudAsesoramientoController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        try {
-            $solicitud = $this->solicitudService->create($request->all());
+        $datos = $request->validate([
+            'mensaje' => ['required', 'string', 'max:2000'],
+        ]);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Solicitud de asesoramiento created successfully',
-                'data' => $solicitud,
-            ], 201);
+        $solicitud = $this->solicitudService->createForUser(
+            $request->user(),
+            $datos['mensaje'],
+        );
 
-        } catch (ValidationException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Solicitud de asesoramiento creada correctamente',
+            'data' => $solicitud,
+        ], 201);
     }
 
     public function show(string $id): JsonResponse
