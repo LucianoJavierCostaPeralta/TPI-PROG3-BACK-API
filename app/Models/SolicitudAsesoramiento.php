@@ -11,6 +11,9 @@ class SolicitudAsesoramiento extends Model
 {
     use HasFactory, HasUuids;
 
+    // La tabla existente no sigue la pluralización convencional de Eloquent.
+    protected $table = 'solicitudes_asesoramiento';
+
     public $incrementing = false;
 
     protected $keyType = 'string';
