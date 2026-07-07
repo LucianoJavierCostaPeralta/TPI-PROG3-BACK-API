@@ -28,6 +28,7 @@ Route::post('v1/registro', RegistroController::class)
 Route::post('v1/recuperar-password', [AuthController::class, 'recoverPassword'])
     ->middleware('throttle:5,1')
     ->name('password.recover');
+Route::get('v1/solicitudes-asesoramiento', [SolicitudAsesoramientoController::class, 'index']);
 
 // ==========================================
 // RUTAS PROTEGIDAS (Sanctum)

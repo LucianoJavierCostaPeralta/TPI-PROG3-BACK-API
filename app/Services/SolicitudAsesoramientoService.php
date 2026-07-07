@@ -81,7 +81,11 @@ class SolicitudAsesoramientoService
      */
     public function getAll(): Collection
     {
-        return $this->solicitud->all();
+        return $this->solicitud
+            ->newQuery()
+            ->with('usuario')
+            ->latest()
+            ->get();
     }
 
     public function getById(string $id): SolicitudAsesoramiento

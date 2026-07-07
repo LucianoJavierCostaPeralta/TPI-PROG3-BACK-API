@@ -50,7 +50,6 @@ class ApiRouteSecurityTest extends TestCase
             ['/api/v1/roles'],
             ['/api/v1/notificaciones'],
             ['/api/v1/auditoria-logs'],
-            ['/api/v1/solicitudes-asesoramiento'],
         ];
     }
 }

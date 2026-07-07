@@ -48,6 +48,31 @@ class SolicitudAsesoramientoTest extends TestCase
             ->assertJsonValidationErrors('mensaje');
     }
 
+    public function test_anyone_can_list_all_advisory_requests(): void
+    {
+        $chofer = User::where('email', 'chofer@logistica.com')->firstOrFail();
+        Sanctum::actingAs($chofer);
+
+        $this->postJson('/api/v1/solicitudes-asesoramiento', [
+            'mensaje' => 'Necesito revisar una entrega pendiente.',
+        ])->assertCreated();
+
+        $externalAdmin = User::factory()->admin()->create([
+            'email' => 'admin-externo@example.com',
+        ]);
+        Sanctum::actingAs($externalAdmin);
+
+        $this->postJson('/api/v1/solicitudes-asesoramiento', [
+            'mensaje' => 'Mensaje de otra empresa.',
+        ])->assertCreated();
+
+        $this->getJson('/api/v1/solicitudes-asesoramiento')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['mensaje' => 'Necesito revisar una entrega pendiente.'])
+            ->assertJsonFragment(['mensaje' => 'Mensaje de otra empresa.']);
+    }
+
     public function test_unauthenticated_user_cannot_send_an_advisory_request(): void
     {
         $this->postJson('/api/v1/solicitudes-asesoramiento', [
