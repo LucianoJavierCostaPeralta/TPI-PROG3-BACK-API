@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Soporte;
 
 use App\Http\Controllers\Controller;
+use App\Services\NotificacionService;
 use App\Services\SolicitudAsesoramientoService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -12,11 +13,10 @@ use Illuminate\Validation\ValidationException;
 // Controlador encargado de gestionar las solicitudes de asesoramiento - Autor: Ulises
 class SolicitudAsesoramientoController extends Controller
 {
-    protected SolicitudAsesoramientoService $solicitudService;
-
-    public function __construct(SolicitudAsesoramientoService $solicitudService)
-    {
-        $this->solicitudService = $solicitudService;
+    public function __construct(
+        protected SolicitudAsesoramientoService $solicitudService,
+        protected NotificacionService $notificacionService,
+    ) {
     }
 
     /**
@@ -43,9 +43,17 @@ class SolicitudAsesoramientoController extends Controller
             'mensaje' => ['required', 'string', 'max:2000'],
         ]);
 
+        $user = $request->user();
         $solicitud = $this->solicitudService->createForUser(
-            $request->user(),
+            $user,
             $datos['mensaje'],
+        );
+
+        $this->notificacionService->createForCompanyAdmins(
+            $user,
+            'Nueva solicitud de asesoramiento',
+            sprintf('%s envió una nueva solicitud de asesoramiento.', $user->nombre_completo),
+            'info',
         );
 
         return response()->json([

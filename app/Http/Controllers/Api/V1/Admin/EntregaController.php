@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Entrega;
 use App\Models\User;
 use App\Services\AuditoriaLogService;
+use App\Services\NotificacionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,10 @@ use Illuminate\Validation\ValidationException;
 /** @tags Administracion - Entregas */
 class EntregaController extends Controller
 {
-    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+    public function __construct(
+        private readonly AuditoriaLogService $auditoria,
+        private readonly NotificacionService $notificaciones,
+    ) {}
 
     /** Listar, filtrar y paginar las entregas de la empresa. */
     public function index(Request $request): JsonResponse
@@ -143,6 +147,8 @@ class EntregaController extends Controller
         $choferId = $data['chofer_id'] ?? null;
         $isUnassigning = $choferId === null;
         $choferAnteriorId = $entrega->chofer_id;
+        $choferAnterior = $choferAnteriorId ? User::find($choferAnteriorId) : null;
+        $choferNuevo = $choferId ? User::find($choferId) : null;
 
         $estadoAnteriorId = $entrega->estado_id;
         $estadoNuevoId = $isUnassigning ? Entrega::ESTADO_PENDING : Entrega::ESTADO_ASSIGNED;
@@ -151,6 +157,8 @@ class EntregaController extends Controller
             $request,
             $entrega,
             $choferId,
+            $choferAnterior,
+            $choferNuevo,
             $isUnassigning,
             $estadoAnteriorId,
             $estadoNuevoId,
@@ -178,6 +186,35 @@ class EntregaController extends Controller
                 'chofer_anterior_id' => $choferAnteriorId,
                 'chofer_nuevo_id' => $choferId,
             ]);
+
+            $shortId = strtoupper(substr((string) $entrega->id, 0, 8));
+            if ($isUnassigning && $choferAnterior) {
+                $this->notificaciones->createForUser(
+                    $choferAnterior,
+                    'Entrega desasignada',
+                    "La entrega #{$shortId} fue desasignada.",
+                    'warning',
+                );
+            }
+
+            if (! $isUnassigning && $choferNuevo) {
+                $titulo = $choferAnteriorId === null ? 'Nueva entrega asignada' : 'Entrega reasignada';
+                $mensaje = $choferAnteriorId === null
+                    ? "Se te asignó la entrega #{$shortId}."
+                    : "La entrega #{$shortId} fue reasignada para vos.";
+                $tipo = $choferAnteriorId === null ? 'success' : 'info';
+
+                $this->notificaciones->createForUser($choferNuevo, $titulo, $mensaje, $tipo);
+
+                if ($choferAnterior && $choferAnteriorId !== $choferId) {
+                    $this->notificaciones->createForUser(
+                        $choferAnterior,
+                        'Entrega reasignada',
+                        "La entrega #{$shortId} fue reasignada a otro chofer.",
+                        'warning',
+                    );
+                }
+            }
         });
 
         return response()->json([

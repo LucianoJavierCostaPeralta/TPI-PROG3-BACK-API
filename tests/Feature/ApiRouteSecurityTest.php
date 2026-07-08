@@ -29,6 +29,7 @@ class ApiRouteSecurityTest extends TestCase
             ['GET', '/api/v1/admin/choferes'],
             ['GET', '/api/v1/admin/entregas'],
             ['GET', '/api/v1/chofer/entregas'],
+            ['GET', '/api/v1/notificaciones'],
         ];
     }
 
@@ -48,7 +49,6 @@ class ApiRouteSecurityTest extends TestCase
             ['/api/v1/jornadas-trabajo'],
             ['/api/v1/motivos-rechazo'],
             ['/api/v1/roles'],
-            ['/api/v1/notificaciones'],
             ['/api/v1/auditoria-logs'],
         ];
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditoriaLogService;
+use App\Services\NotificacionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,10 @@ use Illuminate\Validation\Rule;
 /** @tags Administracion - Choferes */
 class ChoferController extends Controller
 {
-    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+    public function __construct(
+        private readonly AuditoriaLogService $auditoria,
+        private readonly NotificacionService $notificaciones,
+    ) {}
 
     /** Listar los choferes de la empresa. */
     public function index(Request $request): JsonResponse
@@ -60,6 +64,12 @@ class ChoferController extends Controller
                 'email' => $chofer->email,
                 'activo' => $chofer->activo,
             ]);
+            $this->notificaciones->createForUser(
+                $chofer,
+                'Tu cuenta fue creada',
+                sprintf('Tu cuenta de chofer fue creada para la empresa %s.', $request->user()->empresa?->razon_social ?? 'la empresa'),
+                'success',
+            );
 
             return $chofer;
         });
@@ -112,6 +122,12 @@ class ChoferController extends Controller
                 'campos_modificados' => array_values(array_diff(array_keys($data), ['dni'])),
                 'dni_modificado' => array_key_exists('dni', $data),
             ]);
+            $this->notificaciones->createForUser(
+                $chofer,
+                'Tus datos fueron actualizados',
+                'Un administrador actualizó tu perfil de chofer.',
+                'info',
+            );
         });
 
         return response()->json([
@@ -132,6 +148,12 @@ class ChoferController extends Controller
         DB::transaction(function () use ($request, $chofer, $data): void {
             $chofer->update(['password' => $data['password']]);
             $this->auditoria->record($request->user()->empresa_id, $request->user(), $chofer, 'choferes', 'chofer.password_reset');
+            $this->notificaciones->createForUser(
+                $chofer,
+                'Tu contraseña fue restablecida',
+                'Un administrador restableció tu contraseña de acceso.',
+                'warning',
+            );
         });
 
         return response()->json([

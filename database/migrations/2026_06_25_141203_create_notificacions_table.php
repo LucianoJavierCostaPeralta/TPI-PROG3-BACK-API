@@ -16,6 +16,7 @@ return new class extends Migration
             $table->uuid('usuario_id'); // FK del usuario notificado
             $table->string('titulo');
             $table->text('mensaje');
+            $table->string('tipo')->default('info');
             $table->boolean('leida')->default(false);
             $table->timestamps();
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notificacions');
+        Schema::dropIfExists('notificaciones');
     }
 };

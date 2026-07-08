@@ -12,20 +12,16 @@ use Illuminate\Validation\ValidationException;
 // Controlador encargado de gestionar las notificaciones del sistema - Autor: Ulises
 class NotificacionController extends Controller
 {
-    protected NotificacionService $notificacionService;
-
-    public function __construct(NotificacionService $notificacionService)
+    public function __construct(protected NotificacionService $notificacionService)
     {
-        $this->notificacionService = $notificacionService;
     }
 
     /**
-     * Listar todas las notificaciones del sistema.
-     * Incluye información del usuario asociado.
+     * Listar las notificaciones del usuario autenticado.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $notificaciones = $this->notificacionService->getAll();
+        $notificaciones = $this->notificacionService->getForUser($request->user());
 
         return response()->json([
             'status' => 'success',
@@ -58,15 +54,47 @@ class NotificacionController extends Controller
         }
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
         try {
-            $notificacion = $this->notificacionService->getById($id);
+            $notificacion = $this->notificacionService->getByIdForUser($request->user(), $id);
 
-            return response()->json(['status' => 'success', 'message' => 'Notificacion retrieved successfully', 'data' => $notificacion], 200);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notificacion retrieved successfully',
+                'data' => $notificacion,
+            ], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['status' => 'error', 'message' => 'Notificacion not found'], 404);
         }
+    }
+
+    public function markAsRead(Request $request, string $id): JsonResponse
+    {
+        try {
+            $notificacion = $this->notificacionService->markAsRead($request->user(), $id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notificacion marked as read successfully',
+                'data' => $notificacion,
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Notificacion not found'], 404);
+        }
+    }
+
+    public function markAllAsRead(Request $request): JsonResponse
+    {
+        $updated = $this->notificacionService->markAllAsRead($request->user());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Notificaciones marked as read successfully',
+            'data' => [
+                'updated' => $updated,
+            ],
+        ], 200);
     }
 
     public function update(Request $request, string $id): JsonResponse

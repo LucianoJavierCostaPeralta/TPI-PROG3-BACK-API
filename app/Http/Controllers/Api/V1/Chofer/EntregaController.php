@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Chofer;
 use App\Http\Controllers\Controller;
 use App\Models\Entrega;
 use App\Services\AuditoriaLogService;
+use App\Services\NotificacionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,10 @@ use Illuminate\Validation\ValidationException;
 /** @tags Chofer - Entregas */
 class EntregaController extends Controller
 {
-    public function __construct(private readonly AuditoriaLogService $auditoria) {}
+    public function __construct(
+        private readonly AuditoriaLogService $auditoria,
+        private readonly NotificacionService $notificaciones,
+    ) {}
 
     /** Listar las entregas asignadas al chofer. */
     public function index(Request $request): JsonResponse
@@ -76,6 +80,13 @@ class EntregaController extends Controller
                 'estado_anterior_id' => $estadoAnteriorId,
                 'estado_nuevo_id' => Entrega::ESTADO_ACCEPTED,
             ]);
+
+            $this->notificaciones->createForCompanyAdmins(
+                $request->user(),
+                'Entrega aceptada',
+                sprintf('El chofer %s aceptó la entrega #%s.', $request->user()->nombre_completo, strtoupper(substr((string) $entrega->id, 0, 8))),
+                'success',
+            );
         });
 
         return response()->json([
@@ -132,6 +143,25 @@ class EntregaController extends Controller
                 'estado_anterior_id' => $estadoAnteriorId,
                 'estado_nuevo_id' => $data['estado_id'],
             ]);
+
+            $shortId = strtoupper(substr((string) $entrega->id, 0, 8));
+            if ($data['estado_id'] === Entrega::ESTADO_ON_THE_WAY) {
+                $this->notificaciones->createForCompanyAdmins(
+                    $request->user(),
+                    'Entrega en camino',
+                    sprintf('El chofer %s marcó en camino la entrega #%s.', $request->user()->nombre_completo, $shortId),
+                    'info',
+                );
+            }
+
+            if ($data['estado_id'] === Entrega::ESTADO_DELIVERED) {
+                $this->notificaciones->createForCompanyAdmins(
+                    $request->user(),
+                    'Entrega finalizada',
+                    sprintf('El chofer %s finalizó la entrega #%s.', $request->user()->nombre_completo, $shortId),
+                    'success',
+                );
+            }
         });
 
         return response()->json([

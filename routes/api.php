@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Chofer\EntregaController as ChoferEntregaControl
 use App\Http\Controllers\Api\V1\Empresas\EmpresaController;
 use App\Http\Controllers\Api\V1\Empresas\UserController;
 use App\Http\Controllers\Api\V1\Logistica\EstadoEntregaController;
+use App\Http\Controllers\Api\V1\Soporte\NotificacionController;
 use App\Http\Controllers\Api\V1\Soporte\SolicitudAsesoramientoController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,10 @@ Route::prefix('v1')
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('estados-entrega', [EstadoEntregaController::class, 'index']);
         Route::post('solicitudes-asesoramiento', [SolicitudAsesoramientoController::class, 'store']);
+        Route::get('notificaciones', [NotificacionController::class, 'index']);
+        Route::get('notificaciones/{notificacion}', [NotificacionController::class, 'show']);
+        Route::patch('notificaciones/{notificacion}/read', [NotificacionController::class, 'markAsRead']);
+        Route::patch('notificaciones/read-all', [NotificacionController::class, 'markAllAsRead']);
 
         Route::middleware('role:chofer')
             ->prefix('chofer')
