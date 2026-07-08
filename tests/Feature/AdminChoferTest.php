@@ -22,7 +22,8 @@ class AdminChoferTest extends TestCase
 
     public function test_admin_can_create_chofer(): void
     {
-        Sanctum::actingAs(User::where('email', 'admin@admin.com')->first());
+        $admin = User::where('email', 'admin@admin.com')->first();
+        Sanctum::actingAs($admin);
 
         $response = $this->postJson('/api/v1/admin/choferes', [
             'nombre_completo' => 'Juan Perez',
@@ -42,6 +43,23 @@ class AdminChoferTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'juan@example.com',
             'rol_id' => User::ROL_CHOFER,
+        ]);
+
+        $choferId = $response->json('data.id');
+
+        $this->assertDatabaseHas('auditoria_logs', [
+            'empresa_id' => $admin->empresa_id,
+            'usuario_id' => $admin->id,
+            'tabla_afectada' => 'choferes',
+            'recurso_id' => $choferId,
+            'accion' => 'chofer.created',
+        ]);
+
+        $this->assertDatabaseHas('notificaciones', [
+            'usuario_id' => $choferId,
+            'titulo' => 'Tu cuenta fue creada',
+            'tipo' => 'success',
+            'leida' => false,
         ]);
     }
 
