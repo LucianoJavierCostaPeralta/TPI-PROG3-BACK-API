@@ -222,4 +222,118 @@ class AdminEntregaTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('chofer_id');
     }
+
+    public function test_admin_can_update_entrega(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        $chofer = User::where('email', 'chofer@logistica.com')->first();
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->assignedTo($chofer)->create([
+            'empresa_id' => $admin->empresa_id,
+            'cliente_id' => ClienteDestinatario::factory()->create([
+                'empresa_id' => $admin->empresa_id,
+            ])->id,
+            'cliente' => 'Cliente anterior',
+            'producto' => 'Producto anterior',
+            'direccion_destino' => 'Calle anterior 123',
+            'referencia' => 'Referencia anterior',
+        ]);
+
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}", [
+            'cliente' => 'Cliente editado',
+            'cliente_dni' => '32123456',
+            'producto' => 'Producto editado',
+            'direccion_destino' => 'Calle nueva 456',
+            'referencia' => 'Referencia editada',
+        ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Entrega actualizada correctamente.')
+            ->assertJsonPath('data.cliente', 'Cliente editado')
+            ->assertJsonPath('data.cliente_dni', '32123456')
+            ->assertJsonPath('data.producto', 'Producto editado')
+            ->assertJsonPath('data.direccion_destino', 'Calle nueva 456')
+            ->assertJsonPath('data.referencia', 'Referencia editada');
+
+        $this->assertDatabaseHas('entregas', [
+            'id' => $entrega->id,
+            'cliente' => 'Cliente editado',
+            'cliente_dni' => '32123456',
+            'producto' => 'Producto editado',
+            'direccion_destino' => 'Calle nueva 456',
+            'referencia' => 'Referencia editada',
+        ]);
+        $this->assertDatabaseHas('auditoria_logs', [
+            'recurso_id' => $entrega->id,
+            'accion' => 'entrega.updated',
+            'tabla_afectada' => 'entregas',
+        ]);
+        $this->assertDatabaseHas('notificaciones', [
+            'usuario_id' => $chofer->id,
+            'titulo' => 'Entrega actualizada',
+            'tipo' => 'info',
+            'leida' => false,
+        ]);
+    }
+
+    public function test_admin_cannot_update_entrega_from_another_empresa(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->create([
+            'cliente' => 'Cliente original',
+        ]);
+
+        $this->patchJson("/api/v1/admin/entregas/{$entrega->id}", [
+            'cliente' => 'Cliente editado',
+        ])
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('entregas', [
+            'id' => $entrega->id,
+            'cliente' => 'Cliente original',
+        ]);
+    }
+
+    public function test_admin_can_delete_entrega(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->create([
+            'empresa_id' => $admin->empresa_id,
+            'cliente_id' => ClienteDestinatario::factory()->create([
+                'empresa_id' => $admin->empresa_id,
+            ])->id,
+        ]);
+
+        $this->deleteJson("/api/v1/admin/entregas/{$entrega->id}")
+            ->assertOk()
+            ->assertJsonPath('message', 'Entrega eliminada correctamente.');
+
+        $this->assertDatabaseMissing('entregas', [
+            'id' => $entrega->id,
+        ]);
+        $this->assertDatabaseHas('auditoria_logs', [
+            'recurso_id' => $entrega->id,
+            'accion' => 'entrega.deleted',
+            'tabla_afectada' => 'entregas',
+        ]);
+    }
+
+    public function test_admin_cannot_delete_entrega_from_another_empresa(): void
+    {
+        $admin = User::where('email', 'admin@admin.com')->first();
+        Sanctum::actingAs($admin);
+
+        $entrega = Entrega::factory()->create();
+
+        $this->deleteJson("/api/v1/admin/entregas/{$entrega->id}")
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('entregas', [
+            'id' => $entrega->id,
+        ]);
+    }
 }

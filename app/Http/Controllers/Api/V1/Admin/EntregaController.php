@@ -120,6 +120,58 @@ class EntregaController extends Controller
         ]);
     }
 
+    /** Actualizar los datos generales de una entrega. */
+    public function update(Request $request, Entrega $entrega): JsonResponse
+    {
+        $this->ensureEntregaBelongsToEmpresa($request, $entrega);
+
+        $data = $request->validate([
+            'cliente' => ['sometimes', 'required', 'string', 'min:2', 'max:150'],
+            'cliente_dni' => ['sometimes', 'required', 'string', 'regex:/^[0-9]{8}$/'],
+            'producto' => ['sometimes', 'required', 'string', 'min:2', 'max:150'],
+            'direccion_destino' => ['sometimes', 'required', 'string', 'min:3', 'max:255'],
+            'orden_ruta' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'referencia' => ['sometimes', 'nullable', 'string', 'max:500'],
+        ]);
+
+        $changedFields = [];
+
+        DB::transaction(function () use ($request, $entrega, $data, &$changedFields): void {
+            $entrega->fill($data);
+            $changedFields = array_keys($entrega->getDirty());
+
+            if ($changedFields === []) {
+                return;
+            }
+
+            $entrega->save();
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $entrega, 'entregas', 'entrega.updated', [
+                'campos_modificados' => $changedFields,
+            ]);
+
+            if ($entrega->chofer_id !== null) {
+                $entrega->loadMissing('chofer');
+                if ($entrega->chofer) {
+                    $shortId = strtoupper(substr((string) $entrega->id, 0, 8));
+                    $this->notificaciones->createForUser(
+                        $entrega->chofer,
+                        'Entrega actualizada',
+                        "Se actualizaron los datos de la entrega #{$shortId}.",
+                        'info',
+                    );
+                }
+            }
+        });
+
+        return response()->json([
+            'message' => 'Entrega actualizada correctamente.',
+            'data' => $entrega->load([
+                'chofer:id,nombre_completo,email,telefono,rol_id',
+                'estado:id,nombre_estado',
+            ]),
+        ]);
+    }
+
     /** Asignar, reasignar o desasignar un chofer. */
     public function assign(Request $request, Entrega $entrega): JsonResponse
     {
@@ -225,6 +277,27 @@ class EntregaController extends Controller
                 'chofer:id,nombre_completo,email,telefono,rol_id',
                 'estado:id,nombre_estado',
             ]),
+        ]);
+    }
+
+    /** Eliminar una entrega de la empresa. */
+    public function destroy(Request $request, Entrega $entrega): JsonResponse
+    {
+        $this->ensureEntregaBelongsToEmpresa($request, $entrega);
+
+        DB::transaction(function () use ($request, $entrega): void {
+            $this->auditoria->record($request->user()->empresa_id, $request->user(), $entrega, 'entregas', 'entrega.deleted', [
+                'cliente' => $entrega->cliente,
+                'producto' => $entrega->producto,
+                'estado_id' => $entrega->estado_id,
+                'chofer_id' => $entrega->chofer_id,
+            ]);
+
+            $entrega->delete();
+        });
+
+        return response()->json([
+            'message' => 'Entrega eliminada correctamente.',
         ]);
     }
 

@@ -11,7 +11,8 @@ Este repositorio contiene el backend Laravel. El cliente móvil/web se encuentra
 - Roles de administrador y chofer.
 - Aislamiento de datos por empresa.
 - ABM de usuarios y choferes.
-- Creación, consulta, filtrado y asignación de entregas.
+- CRUD completo de entregas administrativas: creación, listado, consulta, edición, eliminación, filtros y asignación de chofer.
+- Notificaciones automáticas para choferes ante asignaciones, desasignaciones, reasignaciones y actualización de datos de una entrega asignada.
 - Flujo operativo del chofer con validación del DNI del destinatario.
 - Historial de estados de cada entrega.
 - Auditoría de operaciones sensibles.
@@ -163,10 +164,10 @@ routes/api.php
 Middleware ── auth:sanctum ── role:admin|chofer
           │
           ▼
-Controllers ── validación y respuesta HTTP
+Controllers ── validación, transacciones de endpoints activos y respuesta HTTP
           │
           ▼
-Services ── casos de uso y operaciones transaccionales
+Services ── lógica reutilizable, auditoría y notificaciones
           │
           ▼
 Models Eloquent ── relaciones, casts y persistencia
@@ -177,8 +178,8 @@ PostgreSQL en Render / MySQL local
 
 - **Routes** define la API versionada y aplica autenticación y autorización.
 - **Middleware** valida tokens Sanctum y roles.
-- **Form Requests / Controllers** validan la entrada y coordinan cada solicitud.
-- **Services** encapsula lógica reutilizable, transacciones y auditoría.
+- **Form Requests / Controllers** validan la entrada, aplican alcance multiempresa y coordinan cada solicitud.
+- **Services** encapsula lógica reutilizable: notificaciones, auditoría y servicios heredados de dominio.
 - **Models** representa entidades y relaciones Eloquent.
 - **Migrations** versiona el esquema relacional.
 - **Seeders** carga catálogos y usuarios de desarrollo.
@@ -311,12 +312,13 @@ erDiagram
 | `EstadoEntrega` | Estado actual o histórico | Clasifica entregas y transiciones |
 | `HistorialEstadoEntrega` | Trazabilidad de transiciones | Une entrega, estados anterior/nuevo y usuario |
 | `AuditoriaLog` | Evento de negocio auditable | Pertenece a empresa y opcionalmente a un usuario/recurso |
+| `Notificacion` | Aviso operativo para usuarios | Pertenece a un usuario; se crea por eventos como asignaciones y actualizaciones de entregas |
 | `ClienteDestinatario` | Cliente normalizado del modelo extendido | Pertenece a empresa y tiene entregas legacy |
 | `Producto` / `DetalleEntrega` | Catálogo y detalle normalizado | Relación de productos incluidos en entregas |
 | `Vehiculo` / `AsignacionVehiculo` | Flota y asignación temporal | Une choferes con vehículos |
 | `ZonaCobertura` / `ChoferZona` | Cobertura operativa | Relación muchos a muchos entre choferes y zonas |
 
-La entrega del MVP guarda `cliente`, `cliente_dni` y `producto` directamente. `cliente_id` y los detalles normalizados se mantienen para compatibilidad con el modelo extendido.
+La entrega del MVP guarda `cliente`, `cliente_dni` y `producto` directamente. `cliente_id` y los detalles normalizados se mantienen para compatibilidad con el modelo extendido. Las notificaciones se almacenan por usuario y se consumen desde el perfil autenticado.
 
 ## Ciclo de una entrega
 
@@ -338,11 +340,15 @@ Flujo activo del MVP:
 pending ⇄ assigned → accepted → on_the_way → delivered
 ```
 
+- El administrador puede crear, listar, consultar, editar y eliminar entregas de su empresa.
+- La edición administrativa modifica datos generales: cliente, DNI, producto, dirección, orden de ruta y referencia. No modifica chofer ni estado.
+- Si una entrega asignada se edita y hubo cambios reales, el chofer recibe una notificación automática.
 - El administrador puede asignar, reasignar o desasignar solamente entregas `pending` o `assigned`.
 - El chofer puede aceptar solamente una entrega `assigned`.
 - Solamente se permite avanzar de `accepted` a `on_the_way` y luego a `delivered`.
 - Para llegar a `delivered`, el DNI enviado debe coincidir con el almacenado.
-- Cada cambio genera historial y auditoría en una transacción.
+- Las transiciones de estado generan historial y auditoría en una transacción.
+- La creación, edición, asignación, desasignación, reasignación y eliminación de entregas generan auditoría.
 
 ## Endpoints
 
@@ -365,6 +371,10 @@ Prefijo general: `/api/v1`.
 | PATCH | `/profile/password` | Cambia la contraseña validando la actual y confirmación |
 | POST | `/logout` | Revoca el token actual |
 | GET | `/estados-entrega` | Lista el catálogo de estados |
+| GET | `/notificaciones` | Lista notificaciones del usuario autenticado |
+| GET | `/notificaciones/{id}` | Consulta una notificación propia |
+| PATCH | `/notificaciones/{id}/read` | Marca una notificación propia como leída |
+| PATCH | `/notificaciones/read-all` | Marca todas las notificaciones propias como leídas |
 
 ### Administración
 
@@ -384,6 +394,8 @@ Todas requieren `auth:sanctum` y rol `admin`.
 | GET | `/admin/entregas` | Lista y filtra entregas |
 | POST | `/admin/entregas` | Crea una entrega |
 | GET | `/admin/entregas/{id}` | Consulta entrega e historial |
+| PATCH | `/admin/entregas/{id}` | Edita datos generales de una entrega; notifica al chofer si está asignada y hubo cambios |
+| DELETE | `/admin/entregas/{id}` | Elimina una entrega de la empresa |
 | PATCH | `/admin/entregas/{id}/assign` | Asigna, reasigna o desasigna chofer |
 | GET | `/empresas` | Lista empresas accesibles |
 | GET | `/empresas/{id}` | Consulta una empresa |
@@ -438,6 +450,32 @@ curl --request POST http://127.0.0.1:8000/api/v1/admin/entregas \
     "direccion_destino": "Av. Siempre Viva 742",
     "referencia": "Timbre 2B"
   }'
+```
+
+### Editar una entrega
+
+```bash
+curl --request PATCH http://127.0.0.1:8000/api/v1/admin/entregas/ENTREGA_UUID \
+  --header "Accept: application/json" \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer TOKEN_ADMIN" \
+  --data '{
+    "cliente": "Ana Perez",
+    "cliente_dni": "30123456",
+    "producto": "Caja grande",
+    "direccion_destino": "Av. Siempre Viva 742",
+    "referencia": "Porton negro"
+  }'
+```
+
+Si la entrega tiene chofer asignado y alguno de esos campos cambia, el chofer recibe una notificación `Entrega actualizada`.
+
+### Eliminar una entrega
+
+```bash
+curl --request DELETE http://127.0.0.1:8000/api/v1/admin/entregas/ENTREGA_UUID \
+  --header "Accept: application/json" \
+  --header "Authorization: Bearer TOKEN_ADMIN"
 ```
 
 ### Asignar un chofer
@@ -512,11 +550,13 @@ Para probar rutas protegidas:
 4. Ingresarlo en el esquema Bearer.
 5. Ejecutar el endpoint mediante **Try it out**.
 
-La especificación también puede exportarse:
+La especificación se genera con Dedoc Scramble a partir de rutas, validaciones y PHPDoc. Cada vez que se agregan o cambian endpoints, debe regenerarse:
 
 ```bash
 php artisan scramble:export
 ```
+
+El comando exporta `api.json`. La UI local `/docs/api` consume el documento generado por Scramble y muestra el renderer Swagger configurado en `config/scramble.php`.
 
 Por defecto, Scramble restringe la documentación fuera del entorno `local`. El despliegue de presentación la habilita explícitamente con `API_DOCS_PUBLIC=true`.
 
@@ -541,7 +581,8 @@ La suite cubre:
 - Autorización por roles.
 - Aislamiento entre empresas.
 - Gestión de choferes.
-- Creación, filtrado y asignación de entregas.
+- CRUD completo de entregas administrativas: creación, filtrado, consulta, edición, eliminación y asignación.
+- Notificación automática al chofer cuando una entrega asignada es actualizada por el administrador.
 - Flujo del chofer y validación segura del DNI.
 - Auditoría y rollback transaccional.
 - Seguridad de rutas.

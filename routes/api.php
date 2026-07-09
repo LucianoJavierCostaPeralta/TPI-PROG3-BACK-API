@@ -73,6 +73,8 @@ Route::prefix('v1')
                     Route::get('entregas', [AdminEntregaController::class, 'index']);
                     Route::post('entregas', [AdminEntregaController::class, 'store']);
                     Route::get('entregas/{entrega}', [AdminEntregaController::class, 'show']);
+                    Route::patch('entregas/{entrega}', [AdminEntregaController::class, 'update']);
+                    Route::delete('entregas/{entrega}', [AdminEntregaController::class, 'destroy']);
                     Route::patch('entregas/{entrega}/assign', [AdminEntregaController::class, 'assign']);
                 });
             });
