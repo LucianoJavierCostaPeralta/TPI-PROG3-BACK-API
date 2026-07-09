@@ -45,12 +45,14 @@ class Entrega extends Model
         'producto',
         'estado_id',
         'direccion_destino',
+        'fecha',
         'orden_ruta',
         'referencia',
         'fecha_asignacion',
     ];
 
     protected $casts = [
+        'fecha' => 'date',
         'fecha_asignacion' => 'datetime',
     ];
 

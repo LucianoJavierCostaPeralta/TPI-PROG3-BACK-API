@@ -71,6 +71,7 @@ class EntregaController extends Controller
             'cliente_dni' => ['required', 'string', 'regex:/^\d{8}$/'],
             'producto' => ['required', 'string', 'min:2', 'max:150'],
             'direccion_destino' => ['required', 'string', 'min:3', 'max:255'],
+            'fecha' => ['required', 'date', 'date_format:Y-m-d', 'after_or_equal:today'],
             'orden_ruta' => ['nullable', 'integer', 'min:1'],
             'referencia' => ['nullable', 'string', 'max:500'],
         ]);
@@ -83,6 +84,7 @@ class EntregaController extends Controller
                 'producto' => $data['producto'],
                 'estado_id' => Entrega::ESTADO_PENDING,
                 'direccion_destino' => $data['direccion_destino'],
+                'fecha' => $data['fecha'],
                 'orden_ruta' => $data['orden_ruta'] ?? null,
                 'referencia' => $data['referencia'] ?? null,
             ]);
