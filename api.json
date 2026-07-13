@@ -1331,6 +1331,10 @@
                                         "minLength": 3,
                                         "maxLength": 255
                                     },
+                                    "fecha": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
                                     "orden_ruta": {
                                         "type": [
                                             "integer",
@@ -1350,7 +1354,8 @@
                                     "cliente",
                                     "cliente_dni",
                                     "producto",
-                                    "direccion_destino"
+                                    "direccion_destino",
+                                    "fecha"
                                 ]
                             }
                         }
@@ -1477,6 +1482,10 @@
                                         "type": "string",
                                         "minLength": 3,
                                         "maxLength": 255
+                                    },
+                                    "fecha": {
+                                        "type": "string",
+                                        "format": "date-time"
                                     },
                                     "orden_ruta": {
                                         "type": [
@@ -2894,6 +2903,13 @@
                             "null"
                         ]
                     },
+                    "fecha": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
                     "fecha_asignacion": {
                         "type": [
                             "string",
@@ -2928,6 +2944,7 @@
                     "direccion_destino",
                     "orden_ruta",
                     "referencia",
+                    "fecha",
                     "fecha_asignacion",
                     "created_at",
                     "updated_at"

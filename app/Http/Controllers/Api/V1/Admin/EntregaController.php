@@ -92,6 +92,7 @@ class EntregaController extends Controller
                 'cliente' => $entrega->cliente,
                 'producto' => $entrega->producto,
                 'direccion_destino' => $entrega->direccion_destino,
+                'fecha' => $entrega->fecha?->toDateString(),
             ]);
 
             return $entrega;
@@ -132,6 +133,7 @@ class EntregaController extends Controller
             'cliente_dni' => ['sometimes', 'required', 'string', 'regex:/^[0-9]{8}$/'],
             'producto' => ['sometimes', 'required', 'string', 'min:2', 'max:150'],
             'direccion_destino' => ['sometimes', 'required', 'string', 'min:3', 'max:255'],
+            'fecha' => ['sometimes', 'required', 'date'],
             'orden_ruta' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'referencia' => ['sometimes', 'nullable', 'string', 'max:500'],
         ]);
